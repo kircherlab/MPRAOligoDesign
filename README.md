@@ -60,6 +60,6 @@ for i in *.vcf.fix.gz; do zcat $i | python varsToFrag.py | bgzip -c > ${i/.vcf.f
 - Recently, we would no longer design with barcodes, but add barcodes through amplification; here only the outer sequences are added to the design 
 
 ```bash
-./design.py -s input1.snvs.fa.gz,input1.snvs.fa.gz -r control_regions.fa.gz -o new_design.tsv 
+./design.py -s input1.snvs.fa.gz,input2.snvs.fa.gz -r control_regions.fa.gz -o new_design.tsv 
 ```
 
