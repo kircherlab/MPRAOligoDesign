@@ -5,7 +5,7 @@ mkdir reference
 
 ## Reference genome
 
-```
+```bash
 cd reference
 wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/hg38.fa.gz
 gunzip hg38.fa.gz; bgzip hg38.fa
@@ -15,7 +15,7 @@ cd ..
 
 ## Simple repeat annotation
 
-```
+```bash
 cd reference
 wget https://hgdownload.soe.ucsc.edu/goldenPath/hg38/database/simpleRepeat.txt.gz
 zcat simpleRepeat.txt.gz | cut -f 2- | sort -k1,1 -k2,2n -k3,3n | bgzip -c > simpleRepeat.bed.gz
@@ -25,7 +25,7 @@ cd ..
 
 ## TSS positions
 
-```
+```bash
 cd reference
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/gencode.v42.annotation.gtf.gz
 zcat gencode.v42.annotation.gtf.gz | awk 'BEGIN{ FS="\t"; OFS="\t" }{ if ($3 == "transcript") { if ($7 == "+") { print $1,$4-1,$4,".",0,"+" } else { print $1,$5-1,$5,".",0,"-" } } }' | sort -k1,1 -k2,2n -u | bgzip -c > TSS_pos.bed.gz
@@ -44,6 +44,7 @@ data/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz
 
 ## Checking VCF files for minimal variant representation and correct reference allele
 
+```bash
 for i in *.vcf.gz; do zcat $i | python VCFrefFix.py --refCheck | bgzip -c > ${i/.vcf.gz/.fix.vcf.gz}; done
 ```
 
