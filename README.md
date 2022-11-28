@@ -29,7 +29,7 @@ cd ..
 cd reference
 wget https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_42/gencode.v42.annotation.gtf.gz
 zcat gencode.v42.annotation.gtf.gz | awk 'BEGIN{ FS="\t"; OFS="\t" }{ if ($3 == "transcript") { if ($7 == "+") { print $1,$4-1,$4,".",0,"+" } else { print $1,$5-1,$5,".",0,"-" } } }' | sort -k1,1 -k2,2n -u | bgzip -c > TSS_pos.bed.gz
-tabix -p bed simpleRepeat.tsv.gz
+tabix -p bed TSS_pos.bed.gz
 cd ..
 ```
 
@@ -37,8 +37,10 @@ cd ..
 
 - Previously identified CTCF sites are in the data folder. Other definitions should be considered.
 
+```bash
 data/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz
-
+tabix -p bed data/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz
+```
 
 # Applying available scripts
 
