@@ -1,7 +1,7 @@
 # Snakemake workflow: MPRAOligoDesign
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥7.15.2-brightgreen.svg)](https://snakemake.bitbucket.io)
-![Tests](https://github.com/visze/MPRAOligoDesign/workflows/Tests/badge.svg)
+![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
 
 [![Build Status](https://travis-ci.org/snakemake-workflows/MPRAOligoDesign.svg?branch=master)](https://travis-ci.org/snakemake-workflows/MPRAOligoDesign)
 
