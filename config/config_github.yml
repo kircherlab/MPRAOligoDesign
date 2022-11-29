@@ -1,3 +1,14 @@
----
-# config file for github actions
-samples: "/github/workspace/config/samples.tsv"
+reference:
+  genome: /github/workspace/resources/reference/hg38.chrom.sizes
+samples: /github/workspace/config/test_samples.tsv
+
+oligo_length: 150
+
+tiling:
+  remove_edge_variants: true
+  min_overlap: 50
+  strategies:
+    two_tiles:
+      max: 250 # 170 wil be used because of 2*150 -2 *50 -2*15
+      include_variant_edge: true
+  variant_edge_exclusion: 15

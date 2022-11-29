@@ -7,11 +7,11 @@ properties:
   sample:
     type: string
     description: sample name/identifier
-  condition:
+  bed_file:
     type: string
-    description: sample condition that will be compared during differential analysis (e.g. a treatment, a tissue time, a disease)
+    description: Location of the bed file
 
 # columns that the config/samples.tsv file must have to pass schema validation
 required:
   - sample
-  - condition
+  - bed_file

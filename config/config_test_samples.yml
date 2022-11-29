@@ -1,0 +1,16 @@
+wrapper_directory: /data/gpfs-1/users/schubacm_c/work/projects/snakemake_wrappers
+reference:
+  genome: resources/reference/hg38.chrom.sizes
+  fasta: /fast/projects/cubit/current/static_data/reference/GRCh38/hs38/hs38.fa.
+samples: config/test_samples.tsv
+
+oligo_length: 150
+
+tiling:
+  remove_edge_variants: true
+  min_overlap: 50
+  strategies:
+    two_tiles:
+      max: 250 # 170 wil be used because of 2*150 -2 *50 -2*15
+      include_variant_edge: true
+  variant_edge_exclusion: 15
