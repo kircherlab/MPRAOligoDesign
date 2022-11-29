@@ -1,6 +1,6 @@
 reference:
   genome: /github/workspace/resources/reference/hg38.chrom.sizes
-samples: /github/workspace/config/test_samples.tsv
+samples: /github/workspace/config/test_samples_github.tsv
 
 oligo_length: 150
 
