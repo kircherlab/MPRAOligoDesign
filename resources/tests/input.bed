@@ -1,0 +1,9 @@
+chr1	999	1000	noTiling_plusStrand	.	+
+chr1	999	1000	noTiling_negativeStrand	.	-
+chr1	999	1149	noTiling_noStrand	.	.
+chr1	999	1150	twoTiling_plusStrand	.	+
+chr1	999	1169	twoTiling_minusStrand	.	-
+chr1	999	1170	centerTiling_plusStrand	.	+
+chr1	999	1449	centerTiling_minusStrand	.	-
+chr1	999	1549	centerTiling_noStrand	.	.
+chr1	999	1547	centerTiling_special	.	.

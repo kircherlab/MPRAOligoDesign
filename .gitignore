@@ -7,7 +7,7 @@ analysis/*
 !docs
 !docs/*
 !resources
-!resources/*
+!resources/**
 !.github
 !.github/**
 !workflow
