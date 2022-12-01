@@ -3,6 +3,7 @@
 import re
 import pysam
 import os
+import pandas as pd
 from optparse import OptionParser
 import gzip
 
@@ -54,16 +55,18 @@ def Site2RegEx(seq):
 
 if __name__ == "__main__":
     parser = OptionParser("%prog [options]")
-    parser.add_option("-l", "--oligos", dest="oligos",
+    parser.add_option("-s", "--seqs", dest="seqs",
                       help="File containing the designed oligos (def '')", default="data/mEB_IGVF_MPRA_array_Y1_all_55k_20221012.fa.gz")
+    parser.add_option("-r", "--regions", dest="regions",
+                      help="File containing the regions (def '')", default="data/tile_DA_peaks_top2500_pareto_ranks_mEB_all_cell_types_IGVF_MPRA_array_Y1_mm10_20221012.bed.gz")
     parser.add_option("-t", "--total", dest="total",
-                      help="Total number of oligos to design (def 300000)", default=300000, type="int")
+                      help="Total number of oligos to design (def 300000)", default=52500, type="int")
     parser.add_option("-z", "--max_homopolymer_length", dest="maxHomLength",
                       help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
     parser.add_option("-f", "--repeat", dest="repeat",
                       help="Maximum fraction explained by a single simple repeat annotation (def 0.25)", default=0.25, type="float")
     parser.add_option("-o", "--outfile", dest="outfile",
-                      help="Output file (def 'design.tsv')", default="design.tsv")
+                      help="Output file (def 'data/failed.fa.gz')", default="data/failed.fa.gz")
     (options, args) = parser.parse_args()
 
     repeatIndex = pysam.Tabixfile("reference/simpleRepeat.bed.gz")
@@ -81,25 +84,24 @@ if __name__ == "__main__":
     restriction_sites = zip(map(lambda site: re.compile(Site2RegEx(
         site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites))
     selectedSeqs = {}
+    failedSeqs = []
 
+    nrFailed = 0
     TSSfailed = 0
     repeatsFailed = 0
     CTCFfailed = 0
     homFailed = 0
     restrictionsFailed = 0
-    if os.path.exists(options.oligos):
-        if options.oligos[-2:] == "gz":
-            file = gzip.open(options.oligos, 'rt')  # , encoding='utf-8')
-        else:
-            file = open(options.oligos)
-        for cid, seq in fastaReader(file):
+    if os.path.exists(options.seqs) and os.path.exists(options.regions):
+        seqfile = gzip.open(options.seqs, 'rt') 
+        regions = pd.read_csv(options.regions, names=["chrom", "start", "end", "id"], sep="\t")
+        regions = regions.set_index("id")
+        for full_id, seq in fastaReader(seqfile):
+            cid = full_id.split("::")[0]
             cseq = LEFT + seq + MIDDLE[:5]
             failed = False
-            if cid[-1] == ')':
-                region = cid.split("_")[-1].strip("()")
-                rchrom = region.split(":")[0]  # .replace("chr", "")
-                rstart, rend = map(int, region.split(":")[-1].split("-"))
-
+            if cid in regions.index:
+                rchrom, rstart, rend = regions.loc[cid]
                 # filter simple repeats
                 for line in repeatIndex.fetch(rchrom, rstart, rend):
                     fields = line.split("\t")
@@ -107,6 +109,7 @@ if __name__ == "__main__":
                     if (min(tend, rend)-max(tstart, rstart))/float(rend-rstart) > options.repeat:
                         failed = True
                         repeatsFailed += 1
+                        break
 
                 # filter TSS
                 if any(TSSIndex.fetch(rchrom, rstart, rend)):
@@ -117,33 +120,44 @@ if __name__ == "__main__":
                 if any(CTCFIndex.fetch(rchrom, rstart, rend)):
                     failed = True
                     CTCFfailed += 1
-
-            if failed:
-                continue
-            if (options.maxHomLength == None) or (nucleotideruns(cseq) <= options.maxHomLength):
-                foundRestrictionSite = False
-                for ind, (site, pos) in enumerate(restriction_sites):
-                    for match in site.finditer(cseq):
-                        foundRestrictionSite = True
-                        break
-                if not foundRestrictionSite:
-                    if seq not in selectedSeqs:
-                        selectedSeqs[seq] = cid
+            
+                if not failed:
+                    if (options.maxHomLength == None) or (nucleotideruns(cseq) <= options.maxHomLength):
+                        foundRestrictionSite = False
+                        for ind, (site, pos) in enumerate(restriction_sites):
+                            if any(site.finditer(cseq)):
+                                foundRestrictionSite = True
+                                break
+                        if not foundRestrictionSite:
+                            if seq not in selectedSeqs:
+                                selectedSeqs[seq] = cid
+                            else:
+                                if cid not in selectedSeqs[seq]:
+                                    selectedSeqs[seq] = cid + ":" + selectedSeqs[seq]
+                        else:
+                            failed =True
+                            restrictionsFailed += 1
                     else:
-                        if cid.split("_")[0] not in selectedSeqs[seq]:
-                            selectedSeqs[seq] = cid + ":" + selectedSeqs[seq]
-                else:
-                    restrictionsFailed += 1
+                        homFailed += 1
+                        failed = True
+                
+                if failed:
+                    nrFailed += 1
+                    failedSeqs.append(cid)
             else:
-                homFailed += 1
-        file.close()
+                print(Warning("ID "+ cid + " does not have associated coordinates in " + options.regions))
+        seqfile.close()
 
-    nrFailed = homFailed + repeatsFailed + TSSfailed + CTCFfailed + restrictionsFailed
+    with gzip.open(options.outfile, 'wt') as out:
+        out.writelines(failedSeqs)
+
+    fraction = nrFailed / options.total
     print("""Failed sequences: 
     %d due to homopolymers 
     %d due to simple repeats 
     %d due to TSS site overlap 
     %d due to CTCF site overlap 
     %d due to EcoRI or SbfI restriction site overlap""" % (homFailed, repeatsFailed, TSSfailed, CTCFfailed, restrictionsFailed))
-    print("Regular failed: %d" % (nrFailed))
-    print("Total sequences included so far: %d" % (len(selectedSeqs)))
+    print("Total failed: %d" % (nrFailed))
+    print("Total passed sequences: %d" %(len(selectedSeqs)))
+    print("Fraction of failed sequences: %f" % (fraction))
