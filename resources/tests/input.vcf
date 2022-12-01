@@ -1,0 +1,9 @@
+##fileformat=VCFv4.3
+##INFO=<ID=match,Number=1,Type=Integer,Description="Number of matched intervals">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO
+chr1	1000	ID1	N	G	.	PASS	match=4
+chr1	20	ID2	N	G	.	PASS	match=0
+chr1	1547	ID3	N	G	.	PASS	match=0
+chr1	1520	ID4	N	G	.	PASS	match=2
+chr1	998	ID5	N	G	.	PASS	match=2
+chr2	121520	ID6	A	G	.	PASS	match=2

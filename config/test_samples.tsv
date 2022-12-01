@@ -1,2 +1,2 @@
-sample	bed_file
-test_1	resources/tests/input.bed
+sample	bed_file	vcf_file
+test_1	resources/tests/input.bed	resources/tests/input.vcf

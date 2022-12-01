@@ -7,3 +7,5 @@ chr1	999	1170	centerTiling_plusStrand	.	+
 chr1	999	1449	centerTiling_minusStrand	.	-
 chr1	999	1549	centerTiling_noStrand	.	.
 chr1	999	1547	centerTiling_special	.	.
+chr2	120999	121547	centerTiling_nuc_negativeStrand	.	-
+chr2	120999	121547	centerTiling_nuc_positiveStrand	.	+
