@@ -27,6 +27,8 @@ rule oligo_design_getSequencesInclVariants:
         remove_regions_without_variants="--remove-regions-without-variants"
         if config["oligo_design"]["variants"]["remove_unused_regions"]
         else "--keep-regions-without-variants",
+    log:
+        "logs/oligo_design/getSequencesInclVariants.{sample}.log",
     shell:
         """
         python {input.script} \
