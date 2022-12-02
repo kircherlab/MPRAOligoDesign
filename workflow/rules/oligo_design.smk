@@ -43,3 +43,31 @@ rule oligo_design_getSequencesInclVariants:
         --reference {input.ref} \
         {params.remove_regions_without_variants} --variant-edge-exclusion {params.variant_edge_exclusion} {params.use_most_centered_region}
         """
+
+rule oligo_design_filterOligos:
+    """Remove oligos overlapping with TSS, CTCF, 
+    restriction sites and simple repeats, 
+    as well as oligos with too many homopolymers. 
+    """
+    conda:
+        "../envs/filter.yaml"
+    input:
+        regions="results/oligo_design/{sample}/design.regions.bed.gz",
+        design="results/oligo_design/{sample}/design.fa",
+        script=getScript("oligo_design/filterOligos.py"),
+        path="results/oligo_design/{sample}/"
+    output:
+        regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
+        design="results/oligo_design/{sample}/filtered.design.fa",
+        variant_ids="results/oligo_design/{sample}/filtered.var.ids.tsv",
+    params:
+        repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"], 
+        max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
+    shell:
+        """
+        python {input.script} \
+        --seqs {input.design} \
+        --repeat {params.repeats} \
+        --max_homopolymer_length {params.max_hom} \
+        --outpath {input.path}
+        """

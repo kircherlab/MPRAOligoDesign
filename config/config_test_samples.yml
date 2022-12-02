@@ -18,3 +18,8 @@ oligo_design:
   variants:
     use_most_centered_region: false
     remove_unused_regions: true
+  filtering:
+    max_homopolymer_length: 10
+    max_simple_repeat_fraction: 0.25
+
+
