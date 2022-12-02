@@ -1,0 +1,8 @@
+name: filter
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - pysam
+  - pandas
