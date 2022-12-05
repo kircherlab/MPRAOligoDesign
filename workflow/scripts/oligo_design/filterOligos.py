@@ -53,14 +53,14 @@ def Site2RegEx(seq):
             reqEx += translation[elem]
     return reqEx
 
-def write_output(filtermap, regions, seqmap, outpath):
+def write_output(regions, seqmap, outpath):
 
     selected_ids = []
     selected_vars = []
     with open(outpath + '/filtered.design.fa', 'w') as out_fa:
         for base_id in seqmap:
-            if filtermap[base_id][0] and filtermap[base_id][1]:
-                for id, seq in seqmap[base_id].items():
+            if seqmap[base_id]["ref"]:
+                for id, seq in seqmap[base_id]["seqs"].items():
                     out_fa.write(">{}\n{}\n".format(id, seq))
                     if len(id.split("_ID")) == 2:
                         selected_vars.append(id.split("_")[-1])
@@ -70,8 +70,8 @@ def write_output(filtermap, regions, seqmap, outpath):
         filtered = filtered.reset_index(level=0)
         filtered.to_csv(out_bed, compression='gzip', sep="\t", 
         header=False, index=False, columns=["chrom", "start", "end", "id", "qfilter", "strand"])
-    with open(outpath + '/filtered.var.ids.tsv', 'w') as out_vars:
-        out_vars.writelines("\t".join(selected_vars))
+    with open(outpath + '/filtered.var.ids.txt', 'w') as out_vars:
+        out_vars.writelines("\n".join(selected_vars))
             
 
 
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser.add_option("-r", "--regions", dest="regions",
                       help="File containing the regions (def '')", default="results/oligo_design/test_1/design.regions.bed.gz")
     parser.add_option("-z", "--max_homopolymer_length", dest="maxHomLength",
-                      help="Maximum homopolymer length (def 10)", default=30, type="int")  # deactivated before
+                      help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
     parser.add_option("-f", "--repeat", dest="repeat",
                       help="Maximum fraction explained by a single simple repeat annotation (def 0.25)", default=0.25, type="float")
     parser.add_option("-o", "--outpath", dest="outpath",
@@ -154,12 +154,11 @@ if __name__ == "__main__":
                                 foundRestrictionSite = True
                                 break
                         if not foundRestrictionSite:
-                            if cid not in seqFilterMap:
-                                seqFilterMap[cid] = np.array([is_ref, not is_ref])
-                                selectedSeqs[cid] = {full_id: seq}
+                            if cid not in selectedSeqs:
+                                selectedSeqs[cid] = {"ref": is_ref, "seqs": {full_id: seq}}
                             else:
-                                seqFilterMap[cid] = np.bitwise_or(seqFilterMap[cid], np.array([is_ref, not is_ref]))
-                                selectedSeqs[cid] |= {full_id: seq}
+                                selectedSeqs[cid]["ref"] = is_ref or selectedSeqs[cid]["ref"]
+                                selectedSeqs[cid]["seqs"] |= {full_id: seq}
                         else:
                             failed =True
                             restrictionsFailed += 1
@@ -174,7 +173,7 @@ if __name__ == "__main__":
                 print(Warning("ID "+ cid + " does not have associated coordinates in " + options.regions))
         seqfile.close()
 
-    write_output(seqFilterMap, regions, selectedSeqs, options.outpath)
+    write_output(regions, selectedSeqs, options.outpath)
 
     with open(options.outpath + '/failed_ids.txt', 'wt') as out:
         out.writelines(failedSeqs)
