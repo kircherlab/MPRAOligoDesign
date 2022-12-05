@@ -59,7 +59,7 @@ rule oligo_design_filterOligos:
     output:
         regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
         design="results/oligo_design/{sample}/filtered.design.fa",
-        variant_ids="results/oligo_design/{sample}/filtered.var.ids.tsv",
+        variant_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
     params:
         repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"], 
         max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
@@ -71,3 +71,18 @@ rule oligo_design_filterOligos:
         --max_homopolymer_length {params.max_hom} \
         --outpath {input.path}
         """
+
+rule filter_variants:
+    """Retain only those variants which are still included after filtering the oligos.
+    """
+    input:
+        filtered_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
+        variants="results/oligo_design/{sample}/design.variants.vcf.gz"
+    output:
+        filtered_variants="results/oligo_design/{sample}/filtered.variants.vcf.gz"
+    shell:
+        """
+         cat <(zgrep '^#' {input.variants} ) <( awk 'NR=FNR{{a[$3][$0]}} $0 in a {{for (i in a[$0]) print i}}' \
+         <(zcat {input.variants}) {input.filtered_ids}) | bgzip -c > {output.filtered_variants}
+        #"""
+    
