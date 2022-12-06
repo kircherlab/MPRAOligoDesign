@@ -56,34 +56,46 @@ rule oligo_design_filterOligos:
         regions="results/oligo_design/{sample}/design.regions.bed.gz",
         design="results/oligo_design/{sample}/design.fa",
         script=getScript("oligo_design/filterOligos.py"),
-        path="results/oligo_design/{sample}/",
     output:
         regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
         design="results/oligo_design/{sample}/filtered.design.fa",
         variant_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
+        vatiants_failed="results/oligo_design/{sample}/failed.var.ids.txt",
+        statistic="results/oligo_design/{sample}/filter.log",
     params:
         repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"],
         max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
+    log:
+        "logs/oligo_design/filterOligos.{sample}.log",
     shell:
         """
         python {input.script} \
         --seqs {input.design} \
         --repeat {params.repeats} \
         --max_homopolymer_length {params.max_hom} \
-        --outpath {input.path}
+        --output-regions {output.regions} \
+        --output-design {output.design} \
+        --output-variants {output.variant_ids} \
+        --output-failed-variants {output.vatiants_failed} \
+        > {output.statistic} 2> {log}
         """
 
 
-rule filter_variants:
+rule oligo_design_filter_variants:
     """Retain only those variants which are still included after filtering the oligos.
     """
+    conda:
+        "../envs/default.yaml"
     input:
         filtered_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
         variants="results/oligo_design/{sample}/design.variants.vcf.gz",
     output:
         filtered_variants="results/oligo_design/{sample}/filtered.variants.vcf.gz",
+    log:
+        "logs/oligo_design/filter_variants.{sample}.log",
     shell:
         """
         cat <(zgrep '^#' {input.variants} ) <( awk 'NR=FNR{{a[$3][$0]}} $0 in a {{for (i in a[$0]) print i}}' \
-        <(zcat {input.variants}) {input.filtered_ids}) | bgzip -c > {output.filtered_variants}
+        <(zcat {input.variants}) {input.filtered_ids}) | \
+        bgzip -c > {output.filtered_variants} 2> {log}
         #"""

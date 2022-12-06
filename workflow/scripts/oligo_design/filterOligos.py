@@ -53,11 +53,11 @@ def Site2RegEx(seq):
             reqEx += translation[elem]
     return reqEx
 
-def write_output(regions, seqmap, outpath):
+def write_output(regions, seqmap, regions_out, design_out, variants_out):
 
     selected_ids = []
     selected_vars = []
-    with open(outpath + '/filtered.design.fa', 'w') as out_fa:
+    with open(design_out, 'w') as out_fa:
         for base_id in seqmap:
             if seqmap[base_id]["ref"]:
                 for id, seq in seqmap[base_id]["seqs"].items():
@@ -65,12 +65,12 @@ def write_output(regions, seqmap, outpath):
                     if len(id.split("_ID")) == 2:
                         selected_vars.append(id.split("_")[-1])
                 selected_ids.append(base_id)
-    with gzip.open(outpath + '/filtered.regions.bed.gz', 'wt') as out_bed:
+    with gzip.open(regions_out, 'wt') as out_bed:
         filtered = regions.loc[regions.index.isin(selected_ids)]
         filtered = filtered.reset_index(level=0)
         filtered.to_csv(out_bed, compression='gzip', sep="\t", 
         header=False, index=False, columns=["chrom", "start", "end", "id", "qfilter", "strand"])
-    with open(outpath + '/filtered.var.ids.txt', 'w') as out_vars:
+    with open(variants_out, 'w') as out_vars:
         out_vars.writelines("\n".join(selected_vars))
             
 
@@ -85,14 +85,20 @@ if __name__ == "__main__":
                       help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
     parser.add_option("-f", "--repeat", dest="repeat",
                       help="Maximum fraction explained by a single simple repeat annotation (def 0.25)", default=0.25, type="float")
-    parser.add_option("-o", "--outpath", dest="outpath",
-                      help="Output file (def 'results/oligo_design/test_1/')", default="results/oligo_design/test_1/")
+    parser.add_option("-o", "--output-regions", dest="regions_out",
+                      help="Output file of filtered regions")
+    parser.add_option("-d", "--output-design", dest="design_out",
+                      help="Output file of diltered sequences")
+    parser.add_option("-v", "--output-variants", dest="variants_out",
+                      help="Output file of filtered variant ids")  
+    parser.add_option("-i", "--output-failed-variants", dest="variants_failed_out",
+                      help="Output file of failed variant ids")  
     (options, args) = parser.parse_args()
 
-    repeatIndex = pysam.Tabixfile("reference/simpleRepeat.bed.gz")
-    TSSIndex = pysam.Tabixfile("reference/TSS_pos.bed.gz")
+    repeatIndex = pysam.Tabixfile("reference/simpleRepeat.bed.gz") # FIXME: hardcoded path
+    TSSIndex = pysam.Tabixfile("reference/TSS_pos.bed.gz") # FIXME: hardcoded path
     CTCFIndex = pysam.Tabixfile(
-        "reference/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz")
+        "reference/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz") # FIXME: hardcoded path
 
     names = {}
     sites = []
@@ -173,9 +179,9 @@ if __name__ == "__main__":
                 print(Warning("ID "+ cid + " does not have associated coordinates in " + options.regions))
         seqfile.close()
 
-    write_output(regions, selectedSeqs, options.outpath)
+    write_output(regions, selectedSeqs, options.regions_out, options.design_out, options.variants_out)
 
-    with open(options.outpath + '/failed_ids.txt', 'wt') as out:
+    with open(options.variants_failed_out, 'wt') as out:
         out.writelines(failedSeqs)
 
     print("""Failed sequences: 
