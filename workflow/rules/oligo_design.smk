@@ -99,3 +99,23 @@ rule oligo_design_filter_variants:
         <(zcat {input.variants}) {input.filtered_ids}) | \
         bgzip -c > {output.filtered_variants} 2> {log}
         #"""
+
+rule oligo_design_add_adapters:
+    """Add adapters to the final designed sequences.
+    """
+    conda:
+        "../envs/default.yaml"
+    input:
+        designs="results/oligo_design/{sample}/filtered.design.fa",
+    output:
+        designs="results/oligo_design/{sample}/final.design.fa",
+    log:
+        "logs/oligo_design/add_adapters.{sample}.log",
+    params:
+        left=config["oligo_design"]["adapters"]["left"],
+        right=config["oligo_design"]["adapters"]["right"],
+    shell:
+        """
+        sed -e '/^>/! s/^/{params.left}/' -e '/^>/!  s/$/{params.right}/' {input.designs} > \
+        {output.designs} 2> {log}
+        """

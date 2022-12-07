@@ -9,7 +9,6 @@ import gzip
 import numpy as np
 
 LEFT = "AGGACCGGATCAACT"
-MIDDLE = "CCTGCAGGGAATTC"
 RIGHT = "CATTGCGTGAACCGA"
 
 translation = {"B": "[CGT]", "D": "[AGT]", "H": "[ACT]", "K": "[GT]",
@@ -129,7 +128,7 @@ if __name__ == "__main__":
         for full_id, seq in fastaReader(seqfile):
             is_ref = full_id[:3] == "REF" 
             cid = full_id[4:].split("_ID")[0]
-            cseq = LEFT + seq + MIDDLE[:5]
+            cseq = LEFT + seq + RIGHT[:5]
             failed = False
             if cid in regions.index:
                 rchrom, rstart, rend,_,_ = regions.loc[cid]
