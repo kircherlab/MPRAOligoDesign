@@ -76,8 +76,8 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
     vcf_header.add_info_line({"ID": "ALT_ID", "Number": ".", "Type": "String", "Description": "Corresponding alt ID(s)"})
     vcf_header.add_info_line({"ID": "REF_ID", "Number": ".", "Type": "String", "Description": "Corresponding REF ID(s)"})
     vcf_writer = vcfpy.Writer.from_path(output_variant_file, vcf_header)
-    df = pd.read_csv(input_region_file, header=None,
-                     names="Chromosome Start End Name Score Strand".split(), sep="\t")
+    df = pd.read_csv(input_region_file, header=None, sep="\t")
+    df.rename({0: "Chromosome", 1: "Start", 2: "End", 3: "Name", 4: "Score", 5: "Strand"}, axis=1, inplace=True)
     regions = pr.PyRanges(df)
     reference = Fasta(reference_file)
 
@@ -143,8 +143,8 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
 
     else:
         regions.as_df().to_csv(output_region_file, sep="\t", header=False, index=False)
-    
-    removed_regions = pd.merge(regions.as_df(), regions_output,how="outer", indicator=True)
+
+    removed_regions = pd.merge(regions.as_df(), regions_output, how="outer", indicator=True)
     removed_regions = removed_regions[removed_regions._merge == "left_only"]
     removed_regions.drop(columns="_merge", inplace=True)
 
@@ -174,7 +174,7 @@ def getSequences(reference, regions, variant_record):
             if alt.type != "SNV":
                 raise Exception("Only SNVs are supported for variant %s" % variant_record)
             alt_nuc = alt.value
-            
+
             alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):]
             if complement:
                 alt_seq = str(Seq(alt_seq).reverse_complement())

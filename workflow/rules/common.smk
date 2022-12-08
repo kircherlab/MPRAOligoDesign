@@ -10,6 +10,13 @@ def getScript(name):
     return "%s/%s" % (SCRIPTS_DIR, name)
 
 
+REFERENCE_DIR = srcdir("../../reference")
+
+
+def getReference(name):
+    return "%s/%s" % (REFERENCE_DIR, name)
+
+
 from snakemake.utils import validate
 import pandas as pd
 

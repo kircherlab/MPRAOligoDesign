@@ -52,6 +52,7 @@ def Site2RegEx(seq):
             reqEx += translation[elem]
     return reqEx
 
+
 def write_output(regions, seqmap, regions_out, design_out, variants_out):
 
     selected_ids = []
@@ -67,11 +68,10 @@ def write_output(regions, seqmap, regions_out, design_out, variants_out):
     with gzip.open(regions_out, 'wt') as out_bed:
         filtered = regions.loc[regions.index.isin(selected_ids)]
         filtered = filtered.reset_index(level=0)
-        filtered.to_csv(out_bed, compression='gzip', sep="\t", 
-        header=False, index=False, columns=["chrom", "start", "end", "id", "qfilter", "strand"])
+        filtered.to_csv(out_bed, compression='gzip', sep="\t",
+                        header=False, index=False, columns=["chrom", "start", "end", "id", "qfilter", "strand"])
     with open(variants_out, 'w') as out_vars:
         out_vars.writelines("\n".join(selected_vars))
-            
 
 
 if __name__ == "__main__":
@@ -84,20 +84,25 @@ if __name__ == "__main__":
                       help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
     parser.add_option("-f", "--repeat", dest="repeat",
                       help="Maximum fraction explained by a single simple repeat annotation (def 0.25)", default=0.25, type="float")
+    parser.add_option("--simple-repeats", dest="simple_repeats_file",
+                      help="Bedfile for simple repeats")
+    parser.add_option("--tss-positions", dest="tss_pos_file",
+                      help="Bedfile for TSS positions")
+    parser.add_option("--ctcf-motifs", dest="ctcf_motif_file",
+                      help="Bedfile for ctcf motifs")
     parser.add_option("-o", "--output-regions", dest="regions_out",
                       help="Output file of filtered regions")
     parser.add_option("-d", "--output-design", dest="design_out",
                       help="Output file of diltered sequences")
     parser.add_option("-v", "--output-variants", dest="variants_out",
-                      help="Output file of filtered variant ids")  
+                      help="Output file of filtered variant ids")
     parser.add_option("-i", "--output-failed-variants", dest="variants_failed_out",
-                      help="Output file of failed variant ids")  
+                      help="Output file of failed variant ids")
     (options, args) = parser.parse_args()
 
-    repeatIndex = pysam.Tabixfile("reference/simpleRepeat.bed.gz") # FIXME: hardcoded path
-    TSSIndex = pysam.Tabixfile("reference/TSS_pos.bed.gz") # FIXME: hardcoded path
-    CTCFIndex = pysam.Tabixfile(
-        "reference/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz") # FIXME: hardcoded path
+    repeatIndex = pysam.Tabixfile(options.simple_repeats_file)
+    TSSIndex = pysam.Tabixfile(options.tss_pos_file)
+    CTCFIndex = pysam.Tabixfile(options.ctcf_motif_file)
 
     names = {}
     sites = []
@@ -118,20 +123,21 @@ if __name__ == "__main__":
     CTCFfailed = 0
     homFailed = 0
     restrictionsFailed = 0
+
     if os.path.exists(options.seqs) and os.path.exists(options.regions):
         if options.seqs[-3:] == ".gz":
-            seqfile = gzip.open(options.seqs, 'rt') 
+            seqfile = gzip.open(options.seqs, 'rt')
         else:
             seqfile = open(options.seqs)
         regions = pd.read_csv(options.regions, names=["chrom", "start", "end", "id", "qfilter", "strand"], sep="\t")
         regions = regions.set_index("id")
         for full_id, seq in fastaReader(seqfile):
-            is_ref = full_id[:3] == "REF" 
+            is_ref = full_id[:3] == "REF"
             cid = full_id[4:].split("_ID")[0]
             cseq = LEFT + seq + RIGHT[:5]
             failed = False
             if cid in regions.index:
-                rchrom, rstart, rend,_,_ = regions.loc[cid]
+                rchrom, rstart, rend, _, _ = regions.loc[cid]
                 # filter simple repeats
                 for line in repeatIndex.fetch(rchrom, rstart, rend):
                     fields = line.split("\t")
@@ -150,7 +156,7 @@ if __name__ == "__main__":
                 if any(CTCFIndex.fetch(rchrom, rstart, rend)):
                     failed = True
                     CTCFfailed += 1
-            
+
                 if not failed:
                     if (options.maxHomLength == None) or (nucleotideruns(cseq) <= options.maxHomLength):
                         foundRestrictionSite = False
@@ -165,20 +171,20 @@ if __name__ == "__main__":
                                 selectedSeqs[cid]["ref"] = is_ref or selectedSeqs[cid]["ref"]
                                 selectedSeqs[cid]["seqs"] |= {full_id: seq}
                         else:
-                            failed =True
+                            failed = True
                             restrictionsFailed += 1
                     else:
                         homFailed += 1
                         failed = True
-                
+
                 if failed:
                     nrFailed += 1
                     failedSeqs.append(full_id)
             else:
-                print(Warning("ID "+ cid + " does not have associated coordinates in " + options.regions))
+                print(Warning("ID " + cid + " does not have associated coordinates in " + options.regions))
         seqfile.close()
 
-    write_output(regions, selectedSeqs, options.regions_out, options.design_out, options.variants_out)
+        write_output(regions, selectedSeqs, options.regions_out, options.design_out, options.variants_out)
 
     with open(options.variants_failed_out, 'wt') as out:
         out.writelines(failedSeqs)
@@ -190,4 +196,4 @@ if __name__ == "__main__":
     %d due to CTCF site overlap 
     %d due to EcoRI or SbfI restriction site overlap""" % (homFailed, repeatsFailed, TSSfailed, CTCFfailed, restrictionsFailed))
     print("Total failed: %d" % (nrFailed))
-    print("Total passed sequences: %d" %(len(selectedSeqs)))
+    print("Total passed sequences: %d" % (len(selectedSeqs)))

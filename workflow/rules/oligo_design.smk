@@ -55,6 +55,9 @@ rule oligo_design_filterOligos:
     input:
         regions="results/oligo_design/{sample}/design.regions.bed.gz",
         design="results/oligo_design/{sample}/design.fa",
+        simple_repeats=getReference("simpleRepeat.bed.gz"),
+        tss=getReference("TSS_pos.bed.gz"),
+        ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
         script=getScript("oligo_design/filterOligos.py"),
     output:
         regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
@@ -71,8 +74,12 @@ rule oligo_design_filterOligos:
         """
         python {input.script} \
         --seqs {input.design} \
+        --regions {input.regions} \
         --repeat {params.repeats} \
         --max_homopolymer_length {params.max_hom} \
+        --tss-positions {input.tss} \
+        --ctcf-motifs {input.ctcf} \
+        --simple-repeats {input.simple_repeats} \
         --output-regions {output.regions} \
         --output-design {output.design} \
         --output-variants {output.variant_ids} \
@@ -99,6 +106,7 @@ rule oligo_design_filter_variants:
         <(zcat {input.variants}) {input.filtered_ids}) | \
         bgzip -c > {output.filtered_variants} 2> {log}
         #"""
+
 
 rule oligo_design_add_adapters:
     """Add adapters to the final designed sequences.
