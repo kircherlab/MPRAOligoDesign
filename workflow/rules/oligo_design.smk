@@ -18,7 +18,7 @@ rule oligo_design_getSequencesInclVariants:
         regions="results/oligo_design/{sample}/design.regions.bed.gz",
         regions_removed="results/oligo_design/{sample}/removed.regions.bed.gz",
         design="results/oligo_design/{sample}/design.fa",
-        design_map="results/oligo_design/{sample}/design.variant_region_map_map.tsv.gz",
+        design_map="results/oligo_design/{sample}/design.variant_region_map.tsv.gz",
     params:
         variant_edge_exclusion=config["tiling"]["variant_edge_exclusion"],
         use_most_centered_region="--use-most-centered-region-for-variant"
@@ -55,14 +55,15 @@ rule oligo_design_filterOligos:
     input:
         regions="results/oligo_design/{sample}/design.regions.bed.gz",
         design="results/oligo_design/{sample}/design.fa",
+        seq_map="results/oligo_design/{sample}/design.variant_region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
         ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
         script=getScript("oligo_design/filterOligos.py"),
     output:
-        regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
-        design="results/oligo_design/{sample}/filtered.design.fa",
-        variant_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
+        #design="results/oligo_design/{sample}/filtered.design.fa",
+        out_map="results/oligo_design/{sample}/filtered.variant_region_map.tsv.gz",
+        #variant_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
         vatiants_failed="results/oligo_design/{sample}/failed.var.ids.txt",
         statistic="results/oligo_design/{sample}/filter.log",
     params:
@@ -75,17 +76,50 @@ rule oligo_design_filterOligos:
         python {input.script} \
         --seqs {input.design} \
         --regions {input.regions} \
+        --seq-map {input.seq_map} \
         --repeat {params.repeats} \
         --max_homopolymer_length {params.max_hom} \
         --tss-positions {input.tss} \
         --ctcf-motifs {input.ctcf} \
         --simple-repeats {input.simple_repeats} \
-        --output-regions {output.regions} \
-        --output-design {output.design} \
-        --output-variants {output.variant_ids} \
+        --output-map {output.out_map} \
         --output-failed-variants {output.vatiants_failed} \
         > {output.statistic} 2> {log}
         """
+
+rule oligo_design_filter_regions:
+    """Filter the bed file using the filtered map."""
+    conda:
+        "../envs/default.yaml"
+    input:
+        map="results/oligo_design/{sample}/filtered.variant_region_map.tsv.gz",
+        regions="results/oligo_design/{sample}/design.regions.bed.gz",
+    output:
+        regions="results/oligo_design/{sample}/filtered.regions.bed.gz",
+    log:
+        "logs/oligo_design/filter_regions.{sample}.log",
+    shell:
+        """
+        awk 'NR=FNR{{a[$4][$0]}} $2 in a {{for (i in a[$2]) print i}}' \
+        <(zcat {input.regions}) <(zcat {input.map}) | \
+        bgzip -c > {output.regions} 2> {log}"""
+
+
+rule oligo_design_filter_seqs:
+    """Filter the bed file using the filtered map."""
+    conda:
+        "../envs/default.yaml"
+    input:
+        map="results/oligo_design/{sample}/filtered.variant_region_map.tsv.gz",
+        seqs="results/oligo_design/{sample}/design.fa",
+    output:
+        seqs="results/oligo_design/{sample}/filtered.design.fa",
+    log:
+        "logs/oligo_design/filter_seqs.{sample}.log",
+    shell:
+        """
+        awk 'NR=FNR {{a[$3]; a[$4]}} {{if ($1 ~ /^>/) id=substr($1,2); if (id in a) print $0}}' \
+         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}"""
 
 
 rule oligo_design_filter_variants:
@@ -94,7 +128,7 @@ rule oligo_design_filter_variants:
     conda:
         "../envs/default.yaml"
     input:
-        filtered_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
+        map="results/oligo_design/{sample}/filtered.variant_region_map.tsv.gz",
         variants="results/oligo_design/{sample}/design.variants.vcf.gz",
     output:
         filtered_variants="results/oligo_design/{sample}/filtered.variants.vcf.gz",
@@ -102,8 +136,8 @@ rule oligo_design_filter_variants:
         "logs/oligo_design/filter_variants.{sample}.log",
     shell:
         """
-        cat <(zgrep '^#' {input.variants} ) <( awk 'NR=FNR{{a[$3][$0]}} $0 in a {{for (i in a[$0]) print i}}' \
-        <(zcat {input.variants}) {input.filtered_ids}) | \
+        cat <(zgrep '^#' {input.variants} ) <( awk 'NR=FNR{{a[$3][$0]}} $1 in a {{for (i in a[$1]) print i}}' \
+        <(zcat {input.variants}) <(zcat {input.map})) | \
         bgzip -c > {output.filtered_variants} 2> {log}
         #"""
 
