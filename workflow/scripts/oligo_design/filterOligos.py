@@ -6,7 +6,6 @@ import os
 import pandas as pd
 from optparse import OptionParser
 import gzip
-import numpy as np
 
 LEFT = "AGGACCGGATCAACT"
 RIGHT = "CATTGCGTGAACCGA"
@@ -54,15 +53,17 @@ def Site2RegEx(seq):
 
 
 def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
-    regions = gzip.open(regions_file, 'rt') #, names=["chrom", "start", "end", "id", "qfilter", "strand"], sep="\t", skiprows = 1)
+    # , names=["chrom", "start", "end", "id", "qfilter", "strand"], sep="\t", skiprows = 1)
+    regions = gzip.open(regions_file, 'rt')
     failed_list = []
-    failed = False
-    fail_reasons = {"TSS": 0, 
-                "repeats": 0,
-                "CTCF": 0}
+    fail_reasons = {"TSS": 0,
+                    "repeats": 0,
+                    "CTCF": 0}
 
     for region in regions:
-        rchrom, rstart, rend, rid, _, _ = region.strip().split("\t")
+        failed = False
+        region_split = region.strip().split("\t")
+        rchrom, rstart, rend, rid = region_split[0:4]
         rstart, rend = int(rstart), int(rend)
         # filter simple repeats
         for line in repeatIndex.fetch(rchrom, rstart, rend):
@@ -82,7 +83,7 @@ def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
         if any(CTCFIndex.fetch(rchrom, rstart, rend)):
             failed = True
             fail_reasons["CTCF"] += 1
-        
+
         if failed:
             failed_list.append(rid)
 
@@ -97,7 +98,7 @@ def seqs_filter(seqs, max_hom):
     names["G^AATTC"] = "EcoRI"
     sites.append("G^AATTC")
     restriction_sites = zip(map(lambda site: re.compile(Site2RegEx(
-       site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites))
+        site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites))
 
     failed_list = []
     fail_reasons = {"restrictions": 0, "hompol": 0}
@@ -132,6 +133,8 @@ def write_output(failed, map_file, remove_unused, out_file):
 
     map = pd.read_csv(map_file, sep="\t")
 
+    total = len(pd.concat([map["REF_ID"], map["ALT_ID"]]).unique())
+
     for rid in failed["regions"]:
         if rid in map["Region"].values:
             map = map.drop(map[map["Region"] == rid].index)
@@ -140,10 +143,13 @@ def write_output(failed, map_file, remove_unused, out_file):
         if sid in map["REF_ID"].values:
             map = map.drop(map[map["REF_ID"] == sid].index)
         if remove_unused and sid in map["ALT_ID"].values:
-            print(map[map["ALT_ID"] == sid])
             map = map.drop(map[map["ALT_ID"] == sid].index)
 
     map.to_csv(out_file, compression='gzip', sep="\t", index=False)
+
+    removed = total - len(pd.concat([map["REF_ID"], map["ALT_ID"]]).unique())
+
+    return (total, removed)
 
 
 if __name__ == "__main__":
@@ -152,7 +158,7 @@ if __name__ == "__main__":
                       help="File containing the designed oligos (def '')", default="results/oligo_design/test_1/design.fa")
     parser.add_option("-r", "--regions", dest="regions",
                       help="File containing the regions (def '')", default="results/oligo_design/test_1/design.regions.bed.gz")
-    parser.add_option("-m", "--seq-map", dest="seq_map", 
+    parser.add_option("-m", "--seq-map", dest="seq_map",
                       help="Map that maps sequences to regions and variants", default="results/oligo_design/test_1/variant_region_map.tsv.gz")
     parser.add_option("-z", "--max_homopolymer_length", dest="maxHomLength",
                       help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
@@ -161,7 +167,7 @@ if __name__ == "__main__":
     parser.add_option("--simple-repeats", dest="simple_repeats_file",
                       help="Bedfile for simple repeats", default="reference/simpleRepeat.bed.gz")
     parser.add_option("--tss-positions", dest="tss_pos_file",
-                      help="Bedfile for TSS positions",default="reference/TSS_pos.bed.gz")
+                      help="Bedfile for TSS positions", default="reference/TSS_pos.bed.gz")
     parser.add_option("--ctcf-motifs", dest="ctcf_motif_file",
                       help="Bedfile for ctcf motifs", default="reference/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz")
     parser.add_option("-o", "--output-map", dest="map_out",
@@ -169,7 +175,7 @@ if __name__ == "__main__":
     parser.add_option("-i", "--output-failed-variants", dest="variants_failed_out",
                       help="Output file of failed variant ids", default="results/oligo_design/test_1/failed.var.ids.txt")
     parser.add_option("-u", "--remove-unused-regions", dest="remove_unused",
-                      help="Whether sequences without variants should be kept (def True)", default="true")                      
+                      help="Whether sequences without variants should be kept (def True)", default="true")
     (options, args) = parser.parse_args()
 
     repeatIndex = pysam.Tabixfile(options.simple_repeats_file)
@@ -177,15 +183,12 @@ if __name__ == "__main__":
     CTCFIndex = pysam.Tabixfile(options.ctcf_motif_file)
 
     remove_unused = options.remove_unused.lower() == "true"
- 
+
     selectedSeqs = {}
-    seqFilterMap = {}
     failedSeqs = []
 
-    nr_failed = 0
     fail_reasons = {}
     failed = {}
-
 
     if options.regions and os.path.exists(options.regions):
         failed["regions"], fail_reasons = regions_filter(options.regions, repeatIndex, TSSIndex, CTCFIndex, options.repeat)
@@ -194,16 +197,16 @@ if __name__ == "__main__":
         failed["seqs"], reasons = seqs_filter(options.seqs, options.maxHomLength)
         fail_reasons |= reasons
 
-    write_output(failed, options.seq_map, remove_unused, options.map_out)
+    total, removed = write_output(failed, options.seq_map, remove_unused, options.map_out)
 
     with open(options.variants_failed_out, 'wt') as out:
         out.writelines(failedSeqs)
 
-    # print("""Failed sequences: 
-    # %d due to homopolymers 
-    # %d due to simple repeats 
-    # %d due to TSS site overlap 
-    # %d due to CTCF site overlap 
-    # %d due to EcoRI or SbfI restriction site overlap""" % (homFailed, repeatsFailed, TSSfailed, CTCFfailed, restrictionsFailed))
-    # print("Total failed: %d" % (nrFailed))
-    # print("Total passed sequences: %d" % (len(selectedSeqs)))
+    print("""Failed sequences: 
+    %d due to homopolymers 
+    %d due to simple repeats 
+    %d due to TSS site overlap 
+    %d due to CTCF site overlap 
+    %d due to EcoRI or SbfI restriction site overlap""" % (fail_reasons.get("hompol", 0), fail_reasons.get("repeats", 0), fail_reasons.get("TSS", 0), fail_reasons.get("CTCF", 0), fail_reasons.get("restrictions", 0)))
+    print("Total failed: %d" % (removed))
+    print("Total passed sequences: %d" % (total-removed))
