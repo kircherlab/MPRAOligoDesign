@@ -87,6 +87,7 @@ rule oligo_design_filterOligos:
         > {output.statistic} 2> {log}
         """
 
+
 rule oligo_design_filter_regions:
     """Filter the bed file using the filtered map."""
     conda:
@@ -119,7 +120,7 @@ rule oligo_design_filter_seqs:
     shell:
         """
         awk 'NR=FNR {{a[$3]; a[$4]}} {{if ($1 ~ /^>/) id=substr($1,2); if (id in a) print $0}}' \
-         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}"""
+        <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}"""
 
 
 rule oligo_design_filter_variants:

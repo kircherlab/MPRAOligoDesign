@@ -25,15 +25,12 @@ rule all:
     input:
         # The first rule should define the default target files
         # Subsequent target rules can be specified below. They should start with all_*.
-        expand(
-            "results/oligo_design/{sample}/final.design.fa",
-            sample=samples.index
-        ),
+        expand("results/oligo_design/{sample}/final.design.fa", sample=samples.index),
         expand(
             "results/oligo_design/{sample}/filtered.variants.vcf.gz",
-            sample=samples.index
+            sample=samples.index,
         ),
         expand(
             "results/oligo_design/{sample}/filtered.regions.bed.gz",
-            sample=samples.index
-        )
+            sample=samples.index,
+        ),
