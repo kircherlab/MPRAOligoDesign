@@ -41,7 +41,7 @@ rule oligo_design_getSequencesInclVariants:
         --output-design {output.design} \
         --output-design-map {output.design_map} \
         --reference {input.ref} \
-        {params.remove_regions_without_variants} --variant-edge-exclusion {params.variant_edge_exclusion} {params.use_most_centered_region}
+        {params.remove_regions_without_variants} --variant-edge-exclusion {params.variant_edge_exclusion} {params.use_most_centered_region} &> {log}
         """
 
 

@@ -113,7 +113,10 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
         alt_ids = []
         region_names = []
         for region_name, alt_seq, ref_seq in getSequences(reference, region_slice, variant_record):
-            variant_id = variant_record.ID[0]
+            if (len(variant_record.ID) == 0):
+                variant_id = variant_record.CHROM + "-" + str(variant_record.POS) + "-" + variant_record.REF + "-" + variant_record.ALT[0].value
+            else:
+                variant_id = variant_record.ID[0]
             alt_id = "ALT_"+region_name + "_" + variant_id
             ref_id = "REF_"+region_name
             ref_sequences = pd.concat([ref_sequences, pd.DataFrame({"ID": [ref_id], "Sequence": [ref_seq]})])
