@@ -48,12 +48,13 @@ def cli(input_file, oligo_length, min_overlap, output_file):
             print_line[2] = str(tile[1])
 
             # check for correct order. center must be in the center
+
             if i == 0:
-                print_line[3] =  '%s_tile%d-%d' % (print_line[3], n_tiles_half+1, n_tiles)
+                print_line[3] =  '%s_%s_tile%d-%d' % (print_line[3], STRAND_NAME[print_line[5]], n_tiles_half+1, n_tiles)
             elif (i> n_tiles_half):
-                print_line[3] =  '%s_tile%d-%d' % (print_line[3], i+1, n_tiles)
+                print_line[3] =  '%s_%s_tile%d-%d' % (print_line[3], STRAND_NAME[print_line[5]], i+1, n_tiles)
             else:
-                print_line[3] =  '%s_tile%d-%d' % (print_line[3], i, n_tiles)
+                print_line[3] =  '%s_%s_tile%d-%d' % (print_line[3], STRAND_NAME[print_line[5]], i, n_tiles)
             
             output.write('\t'.join(print_line) + '\n')
     output.close()
@@ -62,6 +63,7 @@ def is_gz_file(filepath):
     with open(filepath, 'rb') as test_f:
         return test_f.read(2) == b'\x1f\x8b'
 
+STRAND_NAME={'+': 'fwd', '-': 'rev', '.': 'none'}
 
 def tileCenterRegion(start, end, oligo_length, min_overlap):
     """Tiling function for a single region.
