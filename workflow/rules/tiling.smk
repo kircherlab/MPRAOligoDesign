@@ -77,10 +77,13 @@ rule tiling_strategy_noTiles:
         'function ceil(x){{return int(x)+(x>int(x))}};
         function floor(x, y){{y=int(x); return(x<y?y-1:y)}};
         {{ 
+            strand="none";
+            if ($6 == "+") {{strand="fwd"}}
+            else if ($6 == "-") {{strand="rev"}};
             missing = (oligo_length - ($3 - $2))/2;
             $2 = $2-ceil(missing);
             $3 = $3+floor(missing);
-            $4=$4"_tile1-1"
+            $4=$4"_"strand"_tile1-1"
             print;
         }}' | \
         bgzip -c > {output} 2> {log}
@@ -108,9 +111,12 @@ rule tiling_strategy_twoTiles:
         bedtools slop -i {input.regions} -g {input.genome_file} -b {params.extension} | \
         awk -v FS="\\t" -v OFS="\\t" -v oligo_length={params.oligo_length} \
         '{{ 
+            strand="none";
+            if ($6 == "+") {{strand="fwd"}}
+            else if ($6 == "-") {{strand="rev"}};
             start = $2; end = $3; id = $4;
-            $3 = start + oligo_length; $4=id"_tile1-2"; print $0;
-            $2 = end - oligo_length; $3 = end; $4=id"_tile2-2"; print $0;
+            $3 = start + oligo_length; $4=id"_"strand"_tile1-2"; print $0;
+            $2 = end - oligo_length; $3 = end; $4=id"_"strand"_tile2-2"; print $0;
         }}' | \
         bgzip -c > {output} 2> {log}
         """
