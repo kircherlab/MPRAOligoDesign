@@ -1,14 +1,18 @@
 
 rule oligo_design_getSequencesInclVariants:
-    """Rule to map variants to designed regions, 
+    """
+    Rule to map variants to designed regions, 
     filter not matched variants, 
-    removes not used regions (optinal), 
-    and generate ref/alt sequences"""
+    removes not used regions (optional), 
+    and generate ref/alt sequences
+    """
     conda:
         "../envs/oligo_design.yaml"
     input:
-        regions="results/tiling/{sample}/regions.tiles.bed.gz",
-        variants=lambda wc: samples.loc[wc.sample]["vcf_file"],
+        regions=lambda wc: "results/tiling/{sample}/regions.tiles.bed.gz"
+        if isVariantsAndRegionsSample(wc.sample)
+        else "results/centering/{sample}/regions.centered.bed.gz",
+        variants=lambda wc: datasets.loc[wc.sample]["vcf_file"],
         ref=config["reference"]["fasta"],
         genome_file=config["reference"]["genome"],
         script=getScript("oligo_design/getSequencesInclVariants.py"),
@@ -46,7 +50,8 @@ rule oligo_design_getSequencesInclVariants:
 
 
 rule oligo_design_filterOligos:
-    """Remove oligos overlapping with TSS, CTCF, 
+    """
+    Remove oligos overlapping with TSS, CTCF, 
     restriction sites and simple repeats, 
     as well as oligos with too many homopolymers. 
     """
@@ -151,7 +156,7 @@ rule oligo_design_add_adapters:
     input:
         designs="results/oligo_design/{sample}/filtered.design.fa",
     output:
-        designs="results/oligo_design/{sample}/final.design.fa",
+        designs="results/final_design/{sample}/design.fa",
     log:
         "logs/oligo_design/add_adapters.{sample}.log",
     params:

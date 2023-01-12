@@ -174,11 +174,23 @@ def getSequences(reference, regions, variant_record):
         for i, alt in enumerate(variant_record.ALT):
             if i > 0:
                 raise Exception("Only one ALT allele is supported for variant %s" % variant_record)
-            if alt.type != "SNV":
-                raise Exception("Only SNVs are supported for variant %s" % variant_record)
+            
             alt_nuc = alt.value
+            ref_nuc = variant_record.REF
 
-            alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):]
+            end = -(len(alt_nuc)+1 ) if len(alt_nuc) > 1 else None
+            if alt.type == "SNV":
+                alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
+            elif alt.type == "INS":
+                alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
+            elif alt.type == "DEL":
+                alt_seq = ref_seq
+                ref_seq_new = reference[region["Chromosome"]][region["Start"]:(region["End"] + len(ref_nuc) - len(alt_nuc))]
+                ref_seq = ref_seq_new.seq
+                ref_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+len(ref_nuc)):]
+            else:
+                raise Exception("Only SNVs, DELs INSs are supported for variant %s" % variant_record)
+
             if complement:
                 alt_seq = str(Seq(alt_seq).reverse_complement())
                 ref_seq = str(Seq(ref_seq).reverse_complement())

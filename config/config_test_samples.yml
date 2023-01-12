@@ -2,7 +2,11 @@ wrapper_directory: /data/gpfs-1/users/schubacm_c/work/projects/snakemake_wrapper
 reference:
   genome: resources/reference/hg38.chrom.sizes
   fasta: resources/reference/hg38_test.fa
-samples: config/test_samples.tsv
+
+datasets:
+  variants_only: config/test_datasets_variants_only.tsv
+  variants_regions: config/test_datasets_variants_regions.tsv
+  regions_only:  config/test_datasets_regions_only.tsv
 
 oligo_length: 150
 

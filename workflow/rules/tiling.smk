@@ -5,7 +5,7 @@ rule tiling_extendRegions:
     conda:
         "../envs/default.yaml"
     input:
-        regions=lambda wc: samples[wc.sample]["bed_file"],
+        regions=lambda wc: datasets[wc.sample]["bed_file"],
         genome_file=config["reference"]["genome"],
     output:
         "results/tiling/{sample}/regions/extended.bed.gz",
@@ -41,7 +41,7 @@ rule tiling_splitUpForStrategies:
         touch {output.noTiling_tmp};
         touch {output.twoTiles_tmp};
         (
-            if [[ $(file -b --mime-type "{input.regions}") == 'application/gzip' ]]; then
+            if [[ $(file -b --mime-type "{input.regions}") == 'application/gzip' || $(file -b --mime-type "{input.regions}") == 'application/x-gzip' ]]; then
                 zcat {input.regions}
             else
                 cat {input.regions}

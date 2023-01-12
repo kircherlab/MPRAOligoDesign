@@ -6,9 +6,20 @@ type: object
 
 # possible entries of the config file and which type they should be
 properties:
-  samples:
-    type: string
+  datasets:
+    type: object
+    description: "datasets to be processed"
+    properties:
+      variants_only:
+        type: string
+        description: "tsv file with variants and samples  to be processed"
+      regions_only:
+        type: string
+        description: "tsv file with regions and samples to be processed"
+      variants_regions:
+        type: string
+        description: "tsv file with variants, regions and samples  to be processed"
 
 # entries that have to be in the config file for successful validation
 required:
-  - samples
+  - datasets
