@@ -1,5 +1,6 @@
 import math
 
+
 rule centering_create_regions:
     conda:
         "../envs/default.yaml"
@@ -7,10 +8,10 @@ rule centering_create_regions:
         variants=lambda wc: datasets.loc[wc.sample]["vcf_file"],
         genome_file=config["reference"]["genome"],
     output:
-        regions="results/centering/{sample}/regions.centered.bed.gz"
+        regions="results/centering/{sample}/regions.centered.bed.gz",
     params:
-        l=math.ceil(config["oligo_length"]/2),
-        r=math.floor(config["oligo_length"]/2)-1,
+        l=math.ceil(config["oligo_length"] / 2),
+        r=math.floor(config["oligo_length"] / 2) - 1,
     log:
         "logs/centering/create_regions.{sample}.log",
     shell:

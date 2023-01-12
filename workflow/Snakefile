@@ -28,10 +28,10 @@ rule all:
         # Subsequent target rules can be specified below. They should start with all_*.
         expand("results/final_design/{sample}/design.fa", sample=datasets.index),
         expand(
-            "results/oligo_design/{sample}/filtered.variants.vcf.gz",
+            "results/final_design/{sample}/variants.vcf.gz",
             sample=getVariantDatasets(),
         ),
         expand(
-            "results/oligo_design/{sample}/filtered.regions.bed.gz",
+            "results/final_design/{sample}/regions.bed.gz",
             sample=getRegionDatasets(),
         ),

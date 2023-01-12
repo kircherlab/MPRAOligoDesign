@@ -62,22 +62,26 @@ def isVariantsAndRegionsSample(sample):
     """
     Returns True if the sample is a variants and regions sample, False otherwise.
     """
-    return "bed_file" in datasets.columns and not pd.isnull(datasets.loc[sample, "bed_file"])
+    return "bed_file" in datasets.columns and pd.notnull(
+        datasets.loc[sample, "bed_file"]
+    )
+
 
 def getRegionDatasets():
     """
     Returns a list of samples that contain regions.
     """
     if "bed_file" in datasets.columns:
-        return datasets[not datasets["bed_file"].isnull()].index.tolist()
+        return datasets[datasets["bed_file"].notnull()].index.tolist()
     else:
-        return[]
+        return []
+
 
 def getVariantDatasets():
     """
     Returns a list of samples that contain variants.
     """
     if "vcf_file" in datasets.columns:
-        return datasets[not datasets["vcf_file"].isnull()].index.tolist()
+        return datasets[datasets["vcf_file"].isnull()].index.tolist()
     else:
-        []
+        return []
