@@ -69,27 +69,32 @@ def isVariantsAndRegionsSample(sample):
     """
     Returns True if the sample is a variants and regions sample, False otherwise.
     """
-    return ("vcf_file" in datasets.columns and pd.notnull(
-        datasets.loc[sample, "vcf_file"]
-    )) and ("bed_file" in datasets.columns and pd.notnull(
-        datasets.loc[sample, "bed_file"]
-    ) )
+    return (
+        "vcf_file" in datasets.columns and pd.notnull(datasets.loc[sample, "vcf_file"])
+    ) and (
+        "bed_file" in datasets.columns and pd.notnull(datasets.loc[sample, "bed_file"])
+    )
+
 
 def isVariantsOnlySample(sample):
     """
     Returns True if the sample is a variants and regions sample, False otherwise.
     """
-    return ("vcf_file" in datasets.columns and pd.notnull(
-        datasets.loc[sample, "vcf_file"]
-    )) and not isVariantsAndRegionsSample(sample)
+    return (
+        "vcf_file" in datasets.columns and pd.notnull(datasets.loc[sample, "vcf_file"])
+    ) and not isVariantsAndRegionsSample(sample)
+
 
 def isRegionsOnlySample(sample):
     """
     Returns True if the sample is a regions sample, False otherwise.
     """
-    return "bed_file" in datasets.columns and pd.notnull(
-        datasets.loc[sample, "bed_file"]
-    ) and not isVariantsAndRegionsSample(sample)
+    return (
+        "bed_file" in datasets.columns
+        and pd.notnull(datasets.loc[sample, "bed_file"])
+        and not isVariantsAndRegionsSample(sample)
+    )
+
 
 def isSequenceOnlySample(sample):
     """
@@ -98,7 +103,8 @@ def isSequenceOnlySample(sample):
 
     return "fasta_file" in datasets.columns and pd.notnull(
         datasets.loc[sample, "fasta_file"]
-    ) 
+    )
+
 
 def getRegionDatasets():
     """
@@ -119,6 +125,7 @@ def getVariantDatasets():
     else:
         return []
 
+
 def getFinalRegionFile(sample):
     if isVariantsAndRegionsSample(sample) or isVariantsOnlySample(sample):
         print("R Variants", sample)
@@ -126,6 +133,7 @@ def getFinalRegionFile(sample):
     elif isRegionsOnlySample(sample):
         print("R RegionsOnly", sample)
         return "results/oligo_design/{sample}/design_regions_filtered.regions.bed.gz"
+
 
 def getFinalDesignFile(sample):
     if isVariantsAndRegionsSample(sample) or isVariantsOnlySample(sample):
@@ -136,6 +144,4 @@ def getFinalDesignFile(sample):
         return "results/oligo_design/{sample}/design_regions_filtered.design.fa"
     elif isSequenceOnlySample(sample):
         print("D SequenceOnly", sample)
-        return "results/oligo_design/{sample}/design_sequences_filtered.design.fa",
-        
-        
+        return ("results/oligo_design/{sample}/design_sequences_filtered.design.fa",)

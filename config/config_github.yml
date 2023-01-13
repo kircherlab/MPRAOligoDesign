@@ -1,7 +1,8 @@
 reference:
   genome: /github/workspace/resources/reference/hg38.chrom.sizes
   fasta: /github/workspace/resources/reference/hg38_test.fa
-samples: /github/workspace/config/test_samples_github.tsv
+datasets: 
+  variants_regions: /github/workspace/config/test_samples_github.tsv
 
 oligo_length: 150
 

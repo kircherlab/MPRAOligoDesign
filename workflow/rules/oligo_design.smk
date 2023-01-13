@@ -1,7 +1,7 @@
-
 ##################
 #### variants ####
 ##################
+
 
 rule oligo_design_getSequencesInclVariants:
     """
@@ -152,6 +152,7 @@ rule oligo_design_variants_filter_variants:
         bgzip -c > {output.filtered_variants} 2> {log}
         """
 
+
 rule oligo_design_copy_variants:
     conda:
         "../envs/default.yaml"
@@ -165,6 +166,7 @@ rule oligo_design_copy_variants:
         """
         cp {input} {output} &> {log}
         """
+
 
 #####################
 #### Region only ####
@@ -188,6 +190,7 @@ rule oligo_design_regions_getSequences:
         sed 's/(+)$//' | sed 's/(-)$//' > {output} 2> {log}
         """
 
+
 rule oligo_design_regions_getRegionMap:
     """
     retrieve the sequences for the design using only regions
@@ -208,6 +211,7 @@ rule oligo_design_regions_getRegionMap:
             paste <(zcat {input.regions} | cut -f 4) <(cat {input.design} | egrep "^>" | sed 's/^>//')
         ) | gzip -c > {output} 2> {log} 
         """
+
 
 rule oligo_design_regions_filterOligos:
     """
@@ -248,6 +252,7 @@ rule oligo_design_regions_filterOligos:
         > {output.statistic} 2> {log}
         """
 
+
 rule oligo_design_regions_filter_regions:
     """Filter the bed file using the filtered map."""
     conda:
@@ -284,9 +289,11 @@ rule oligo_design_regions_filter_seqs:
         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}
         """
 
+
 #####################
 #### Sequence only ####
 #####################
+
 
 rule oligo_design_seq_getsequenceMap:
     """
@@ -308,6 +315,7 @@ rule oligo_design_seq_getsequenceMap:
         ) | gzip -c > {output} 2> {log} 
         """
 
+
 rule oligo_design_seq_filterOligos:
     """
     Remove oligos overlapping with TSS, CTCF, 
@@ -317,7 +325,7 @@ rule oligo_design_seq_filterOligos:
     conda:
         "../envs/filter.yaml"
     input:
-        design=lambda wc:   datasets.loc[wc.sample, "fasta_file"],
+        design=lambda wc: datasets.loc[wc.sample, "fasta_file"],
         design_map="results/oligo_design/{sample}/design_sequences.sequence_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
@@ -345,6 +353,7 @@ rule oligo_design_seq_filterOligos:
         > {output.statistic} 2> {log}
         """
 
+
 rule oligo_design_sequences_filter_seqs:
     """Filter the bed file using the filtered map."""
     conda:
@@ -362,11 +371,12 @@ rule oligo_design_sequences_filter_seqs:
         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}
         """
 
+
 rule oligo_design_copy_regions:
     conda:
         "../envs/default.yaml"
     input:
-        lambda wc: getFinalRegionFile(wc.sample)
+        lambda wc: getFinalRegionFile(wc.sample),
     output:
         "results/final_design/{sample}/regions.bed.gz",
     log:
@@ -377,7 +387,6 @@ rule oligo_design_copy_regions:
         """
 
 
-
 rule oligo_design_add_adapters:
     """
     Add adapters to the final designed sequences.
@@ -385,7 +394,7 @@ rule oligo_design_add_adapters:
     conda:
         "../envs/default.yaml"
     input:
-        designs=lambda wc: getFinalDesignFile(wc.sample)
+        designs=lambda wc: getFinalDesignFile(wc.sample),
     output:
         designs="results/final_design/{sample}/design.fa",
     log:
