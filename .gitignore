@@ -1,6 +1,7 @@
 *
 analysis
 analysis/*
+**.pyc
 !analysis/README.md
 !config
 !config/*

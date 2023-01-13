@@ -19,6 +19,9 @@ properties:
       variants_regions:
         type: string
         description: "tsv file with variants, regions and samples  to be processed"
+      sequences_only:
+        type: string
+        description: "tsv file withsequences to be processed"
 
 # entries that have to be in the config file for successful validation
 required:

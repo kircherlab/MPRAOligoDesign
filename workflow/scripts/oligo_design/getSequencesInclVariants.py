@@ -179,17 +179,18 @@ def getSequences(reference, regions, variant_record):
             ref_nuc = variant_record.REF
 
             end = -(len(alt_nuc)+1 ) if len(alt_nuc) > 1 else None
-            if alt.type == "SNV":
+            if alt.type == "SNV" or alt.type == "MNV":
                 alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
-            elif alt.type == "INS":
-                alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
-            elif alt.type == "DEL":
-                alt_seq = ref_seq
-                ref_seq_new = reference[region["Chromosome"]][region["Start"]:(region["End"] + len(ref_nuc) - len(alt_nuc))]
-                ref_seq = ref_seq_new.seq
-                ref_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+len(ref_nuc)):]
+            elif alt.type == "INDEL" or alt.type == "INS" or alt.type == "DEL":
+                if (len(alt_nuc) > len(ref_nuc)):
+                    alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
+                else:
+                    alt_seq = ref_seq
+                    ref_seq_new = reference[region["Chromosome"]][region["Start"]:(region["End"] + len(ref_nuc) - len(alt_nuc))]
+                    ref_seq = ref_seq_new.seq
+                    ref_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+len(ref_nuc)):]
             else:
-                raise Exception("Only SNVs, DELs INSs are supported for variant %s" % variant_record)
+                raise Exception("Only SNVs, INDELs, DELs, INSs, MNVs are supported for variant %s" % variant_record)
 
             if complement:
                 alt_seq = str(Seq(alt_seq).reverse_complement())
