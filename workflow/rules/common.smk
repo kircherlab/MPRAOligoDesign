@@ -36,34 +36,29 @@ validate(config, schema="../schemas/config.schema.yaml")
 datasets = pd.DataFrame()
 
 if "variants_regions" in config["datasets"]:
-    df = pd.read_csv(config["datasets"]["variants_regions"], sep="\t").set_index(
-        "sample", drop=False
-    )
-    df.index.names = ["sample_id"]
-    validate(df, schema="../schemas/datasets_variants_regions.schema.yaml")
-    datasets = pd.concat([datasets, df])
+    for dataset in config["datasets"]["variants_regions"]:
+        df = pd.read_csv(dataset, sep="\t").set_index("sample", drop=False)
+        df.index.names = ["sample_id"]
+        validate(df, schema="../schemas/datasets_variants_regions.schema.yaml")
+        datasets = pd.concat([datasets, df])
 if "variants_only" in config["datasets"]:
-    df = pd.read_csv(config["datasets"]["variants_only"], sep="\t").set_index(
-        "sample", drop=False
-    )
-    df.index.names = ["sample_id"]
-    validate(df, schema="../schemas/datasets_variants_only.schema.yaml")
-    datasets = pd.concat([datasets, df])
+    for dataset in config["datasets"]["variants_only"]:
+        df = pd.read_csv(dataset, sep="\t").set_index("sample", drop=False)
+        df.index.names = ["sample_id"]
+        validate(df, schema="../schemas/datasets_variants_only.schema.yaml")
+        datasets = pd.concat([datasets, df])
 if "regions_only" in config["datasets"]:
-    df = pd.read_csv(config["datasets"]["regions_only"], sep="\t").set_index(
-        "sample", drop=False
-    )
-    df.index.names = ["sample_id"]
-    validate(df, schema="../schemas/datasets_regions_only.schema.yaml")
-    datasets = pd.concat([datasets, df])
+    for dataset in config["datasets"]["regions_only"]:
+        df = pd.read_csv(dataset, sep="\t").set_index("sample", drop=False)
+        df.index.names = ["sample_id"]
+        validate(df, schema="../schemas/datasets_regions_only.schema.yaml")
+        datasets = pd.concat([datasets, df])
 if "sequences_only" in config["datasets"]:
-    df = pd.read_csv(config["datasets"]["sequences_only"], sep="\t").set_index(
-        "sample", drop=False
-    )
-    df.index.names = ["sample_id"]
-    validate(df, schema="../schemas/datasets_sequences_only.schema.yaml")
-    datasets = pd.concat([datasets, df])
-
+    for dataset in config["datasets"]["sequences_only"]:
+        df = pd.read_csv(dataset, sep="\t").set_index("sample", drop=False)
+        df.index.names = ["sample_id"]
+        validate(df, schema="../schemas/datasets_sequences_only.schema.yaml")
+        datasets = pd.concat([datasets, df])
 
 def isVariantsAndRegionsSample(sample):
     """

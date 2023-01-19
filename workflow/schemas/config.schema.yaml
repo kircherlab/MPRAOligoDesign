@@ -11,17 +11,25 @@ properties:
     description: "datasets to be processed"
     properties:
       variants_only:
-        type: string
-        description: "tsv file with variants and samples  to be processed"
+        description: "List of tsv files with variants and samples  to be processed"
+        type: array
+        items:
+          type: string
       regions_only:
-        type: string
-        description: "tsv file with regions and samples to be processed"
+        description: "List of tsv files with regions and samples to be processed"
+        type: array
+        items:
+          type: string
       variants_regions:
-        type: string
-        description: "tsv file with variants, regions and samples  to be processed"
+        description: "List of tsv files with variants, regions and samples  to be processed"
+        type: array
+        items:
+          type: string
       sequences_only:
-        type: string
-        description: "tsv file withsequences to be processed"
+        description: "List of tsv files with sequences to be processed"
+        type: array
+        items:
+          type: string
 
 # entries that have to be in the config file for successful validation
 required:
