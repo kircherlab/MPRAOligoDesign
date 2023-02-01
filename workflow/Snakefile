@@ -13,25 +13,34 @@ container: "docker://continuumio/miniconda3"
 
 from snakemake.utils import min_version
 
-min_version("7.15.2")
+min_version("7.20.0")
 
 
 include: "rules/common.smk"
 include: "rules/centering.smk"
 include: "rules/tiling.smk"
 include: "rules/oligo_design.smk"
+include: "rules/final_design.smk"
 
 
 rule all:
     input:
         # The first rule should define the default target files
         # Subsequent target rules can be specified below. They should start with all_*.
-        expand("results/final_design/{sample}/design.fa", sample=datasets.index),
+        expand("results/final_design/{sample}/design.fa.gz", sample=datasets.index),
         expand(
             "results/final_design/{sample}/variants.vcf.gz",
+            sample=getVariantDatasets(),
+        ),
+        expand(
+            "results/final_design/{sample}/variant_region_map.tsv.gz",
             sample=getVariantDatasets(),
         ),
         expand(
             "results/final_design/{sample}/regions.bed.gz",
             sample=getRegionDatasets(),
         ),
+        "results/final_design/design.fa.gz",
+        "results/final_design/variants.vcf.gz",
+        "results/final_design/variant_region_map.tsv.gz",
+        "results/final_design/regions.bed.gz",

@@ -153,21 +153,6 @@ rule oligo_design_variants_filter_variants:
         """
 
 
-rule oligo_design_copy_variants:
-    conda:
-        "../envs/default.yaml"
-    input:
-        "results/oligo_design/{sample}/design_variants_filtered.variants.vcf.gz",
-    output:
-        "results/final_design/{sample}/variants.vcf.gz",
-    log:
-        "logs/oligo_design/copy_variants.{sample}.log",
-    shell:
-        """
-        cp {input} {output} &> {log}
-        """
-
-
 #####################
 #### Region only ####
 #####################
@@ -182,10 +167,17 @@ rule oligo_design_regions_getSequences:
         ref=config["reference"]["fasta"],
     output:
         design="results/oligo_design/{sample}/design_regions.fa",
+    params:
+        region_size=config["oligo_length"],
     log:
         "logs/oligo_design/regions_getSequences.{sample}.log",
     shell:
         """
+        error=`zcat {input.regions} | awk '{{if ($3-$2 != {params.region_size}) {{print $4}}}}'`
+        if [ -n "${{error}}" ]; then
+            echo "ERROR: The following regions have a different size than the oligo length: $error"
+            exit 1
+        fi
         bedtools getfasta -s -nameOnly -fi {input.ref} -bed {input.regions} | \
         sed 's/(+)$//' | sed 's/(-)$//' > {output} 2> {log}
         """
@@ -305,14 +297,22 @@ rule oligo_design_seq_getsequenceMap:
         design=lambda wc: datasets.loc[wc.sample, "fasta_file"],
     output:
         design_map="results/oligo_design/{sample}/design_sequences.sequence_map.tsv.gz",
+    params:
+        region_size=config["oligo_length"],
     log:
         "logs/oligo_design/seq_getsequenceMap.{sample}.log",
     shell:
         """
+        error=`cat {input.design} | awk '{{if ($0 ~ /^>/ ) {{id=$0}} else {{if (length($0) != {params.region_size}) {{print id, length($0)}}}}}}'`
+        if [ -n "${{error}}" ]; then
+            echo "ERROR: The following sequence have a different size than the oligo length: $error"
+            exit 1
+        fi
         (
             echo -e "ID";
             cat {input.design} | egrep "^>" | sed 's/^>//';
-        ) | gzip -c > {output} 2> {log} 
+        ) | \
+        gzip -c > {output} 2> {log} 
         """
 
 
@@ -369,41 +369,4 @@ rule oligo_design_sequences_filter_seqs:
         """
         awk 'NR=FNR {{a[$1]}} {{if ($1 ~ /^>/) id=substr($1,2); if (id in a) print $0}}' \
         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}
-        """
-
-
-rule oligo_design_copy_regions:
-    conda:
-        "../envs/default.yaml"
-    input:
-        lambda wc: getFinalRegionFile(wc.sample),
-    output:
-        "results/final_design/{sample}/regions.bed.gz",
-    log:
-        "logs/oligo_design/copy_regions.{sample}.log",
-    shell:
-        """
-        cp {input} {output} &> {log}
-        """
-
-
-rule oligo_design_add_adapters:
-    """
-    Add adapters to the final designed sequences.
-    """
-    conda:
-        "../envs/default.yaml"
-    input:
-        designs=lambda wc: getFinalDesignFile(wc.sample),
-    output:
-        designs="results/final_design/{sample}/design.fa",
-    log:
-        "logs/oligo_design/add_adapters.{sample}.log",
-    params:
-        left=config["oligo_design"]["adapters"]["left"],
-        right=config["oligo_design"]["adapters"]["right"],
-    shell:
-        """
-        sed -e '/^>/! s/^/{params.left}/' -e '/^>/!  s/$/{params.right}/' {input.designs} > \
-        {output.designs} 2> {log}
         """
