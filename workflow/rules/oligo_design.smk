@@ -303,14 +303,14 @@ rule oligo_design_seq_getsequenceMap:
         "logs/oligo_design/seq_getsequenceMap.{sample}.log",
     shell:
         """
-        error=`cat {input.design} | awk '{{if ($0 ~ /^>/ ) {{id=$0}} else {{if (length($0) != {params.region_size}) {{print id, length($0)}}}}}}'`
+        error=`cat {input.design} | sed 's/\\r//' | awk -v "OFS=\\t" '{{if($0 ~ /^>/ ) {{id=$0}} else if(length($1) != {params.region_size}) {{print id, length($1)}}}}'`
         if [ -n "${{error}}" ]; then
-            echo "ERROR: The following sequence have a different size than the oligo length: $error"
+            echo "ERROR: The following sequence have a different size than the oligo length: ${{error}}"
             exit 1
         fi
         (
             echo -e "ID";
-            cat {input.design} | egrep "^>" | sed 's/^>//';
+            cat {input.design} | sed 's/\\r//' | egrep "^>" | sed 's/^>//';
         ) | \
         gzip -c > {output} 2> {log} 
         """

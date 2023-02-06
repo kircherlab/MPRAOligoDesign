@@ -124,6 +124,23 @@ rule final_design_combine_regions:
         """
 
 
+rule final_design_combine_variants_idx:
+    """
+    Combine designed variants
+    """
+    conda:
+        "../envs/default.yaml"
+    input:
+        "results/final_design/{sample}/variants.vcf.gz",
+    output:
+        "results/final_design/{sample}/variants.vcf.gz.tbi",
+    log:
+        "logs/final_design/combine_variants_idx.{sample}.log",
+    shell:
+        """
+        tabix {input} &> {log};
+        """
+
 rule final_design_combine_variants:
     """
     Combine designed variants
@@ -133,6 +150,10 @@ rule final_design_combine_variants:
     input:
         variants=expand(
             "results/final_design/{sample}/variants.vcf.gz",
+            sample=getVariantDatasets(),
+        ),
+        idx=expand(
+            "results/final_design/{sample}/variants.vcf.gz.tbi",
             sample=getVariantDatasets(),
         ),
     output:
