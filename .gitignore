@@ -21,6 +21,7 @@ analysis/*
 !.flake8
 !LICENSE
 !README.md
+!MPRAOligoDesign.drawio
 
 # python
 # Byte-compiled / optimized / DLL files
