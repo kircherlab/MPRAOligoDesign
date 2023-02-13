@@ -1,206 +1,90 @@
 #!/usr/bin/env python
 
-import re
 import pysam
 import os
 import pandas as pd
-from optparse import OptionParser
-import gzip
-
-LEFT = "AGGACCGGATCAACT"
-RIGHT = "CATTGCGTGAACCGA"
-
-translation = {"B": "[CGT]", "D": "[AGT]", "H": "[ACT]", "K": "[GT]",
-               "M": "[AC]", "N": ".", "R": "[AG]", "S": "[CG]",
-               "V": "[ACG]", "W": "[AT]", "Y": "[CT]",
-               "A": "A", "C": "C", "G": "G", "T": "T"}
+import click
+from filter import seqs_filter, regions_filter
 
 
-def fastaReader(filestream):
-    name, value = None, None
-    for line in filestream:
-        if line.startswith(">"):
-            if value != None:
-                yield name, value
-            value = None
-            name = line[1:].strip()
-        else:
-            value = line.strip()
-    if value != None:
-        yield name, value
+@click.command()
+@click.option('--seqs',
+              'seqs_file',
+              required=False,
+              type=click.Path(exists=True, readable=True),
+              help='File containing the designed oligos ')
+@click.option('--regions',
+              'regions_file',
+              required=False,
+              type=click.Path(exists=True, readable=True),
+              help='File containing the regions')
+@click.option('--variant-map',
+              'variant_map_in',
+              required=False,
+              type=click.Path(exists=True, readable=True),
+              help='Map that maps variants to region to ref and alt sequences')
+@click.option('--map',
+              'map_in',
+              required=False,
+              type=click.Path(exists=True, readable=True),
+              help='Map that maps sequences to regions')
+@click.option('--remove-regions-without-variants/--keep-regions-without-variants',
+              'remove_regions_without_variants',
+              required=False,
+              help="Remove regions without variants")
+@click.option('--max_homopolymer_length',
+              'maxHomLength',
+              default=10,
+              type=int,
+              help='Maximum homopolymer length (def 10)')
+@click.option('--repeat',
+              'repeat',
+              default=0.25,
+              type=float,
+              help='Maximum fraction explained by a single simple repeat annotation')
+@click.option('--simple-repeats',
+              'simple_repeats_file',
+              required=True,
+              type=click.Path(exists=True, readable=True),
+              help='Bedfile for simple repeats')
+@click.option('--tss-positions',
+              'tss_pos_file',
+              required=True,
+              type=click.Path(exists=True, readable=True),
+              help='Bedfile for TSS positions')
+@click.option('--ctcf-motifs',
+              'ctcf_motif_file',
+              required=True,
+              type=click.Path(exists=True, readable=True),
+              help='Bedfile for ctcf motifs')
+@click.option('--output-map',
+              'map_out',
+              required=True,
+              type=click.Path(writable=True),
+              help='Output file of filtered sequence map')
+@click.option('--output-variant-map',
+              'variant_map_out',
+              required=False,
+              type=click.Path(writable=True),
+              help='Output file of filtered variant to region to sequence map')
+def cli(seqs_file, regions_file, variant_map_in, map_in, remove_regions_without_variants, maxHomLength, repeat, simple_repeats_file, tss_pos_file, ctcf_motif_file, variant_map_out, map_out):
 
-
-def nucleotideruns(seq):
-    longestrun = 0
-    lbase, llen = 'N', 0
-    for base in seq:
-        if base == lbase:
-            llen += 1
-        else:
-            if llen > longestrun:
-                longestrun = llen
-            llen = 1
-            lbase = base
-    return longestrun
-
-
-def Site2RegEx(seq):
-    reqEx = ""
-    for elem in seq:
-        if elem in translation:
-            reqEx += translation[elem]
-    return reqEx
-
-
-def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
-    # , names=["chrom", "start", "end", "id", "qfilter", "strand"], sep="\t", skiprows = 1)
-    regions = gzip.open(regions_file, 'rt')
-    failed_list = []
-    fail_reasons = {"TSS": 0,
-                    "repeats": 0,
-                    "CTCF": 0}
-
-    for region in regions:
-        failed = False
-        region_split = region.strip().split("\t")
-        rchrom, rstart, rend, rid = region_split[0:4]
-        rstart, rend = int(rstart), int(rend)
-        # filter simple repeats
-        for line in repeatIndex.fetch(rchrom, rstart, rend):
-            fields = line.split("\t")
-            tstart, tend = int(fields[1]), int(fields[2])
-            if (min(tend, rend)-max(tstart, rstart))/float(rend-rstart) > max_repeats:
-                failed = True
-                fail_reasons["repeats"] += 1
-                break
-
-        # filter TSS
-        if any(TSSIndex.fetch(rchrom, rstart, rend)):
-            failed = True
-            fail_reasons["TSS"] += 1
-
-        # filter CTCF
-        if any(CTCFIndex.fetch(rchrom, rstart, rend)):
-            failed = True
-            fail_reasons["CTCF"] += 1
-
-        if failed:
-            failed_list.append(rid)
-
-    return failed_list, fail_reasons
-
-
-def seqs_filter(seqs, max_hom):
-    names = {}
-    sites = []
-    names["CCTGCA^GG"] = "SbfI"
-    sites.append("CCTGCA^GG")
-    names["G^AATTC"] = "EcoRI"
-    sites.append("G^AATTC")
-    restriction_sites = zip(map(lambda site: re.compile(Site2RegEx(
-        site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites))
-
-    failed_list = []
-    fail_reasons = {"restrictions": 0, "hompol": 0}
-
-    if seqs[-3:] == ".gz":
-        seqfile = gzip.open(seqs, 'rt')
-    else:
-        seqfile = open(seqs)
-
-    fasta = fastaReader(seqfile)
-    for cid, seq in fasta:
-        cseq = LEFT + seq + RIGHT[:5]
-        failed = False
-        if (max_hom == None) or (nucleotideruns(cseq) <= max_hom):
-            foundRestrictionSite = False
-            for ind, (site, pos) in enumerate(restriction_sites):
-                if any(site.finditer(cseq)):
-                    foundRestrictionSite = True
-                    break
-            if foundRestrictionSite:
-                fail_reasons["restrictions"] += 1
-                failed_list.append(cid)
-        else:
-            fail_reasons["hompol"] += 1
-            failed_list.append(cid)
-
-    seqfile.close()
-    return failed_list, fail_reasons
-
-
-def write_output(failed, map_file, remove_unused, out_file):
-
-    map = pd.read_csv(map_file, sep="\t")
-
-    total = len(pd.concat([map["REF_ID"], map["ALT_ID"]]).unique())
-
-    for rid in failed["regions"]:
-        if rid in map["Region"].values:
-            map = map.drop(map[map["Region"] == rid].index)
-
-    for sid in failed["seqs"]:
-        if sid in map["REF_ID"].values:
-            map = map.drop(map[map["REF_ID"] == sid].index)
-        if remove_unused and sid in map["ALT_ID"].values:
-            map = map.drop(map[map["ALT_ID"] == sid].index)
-
-    map.to_csv(out_file, compression='gzip', sep="\t", index=False)
-
-    removed = total - len(pd.concat([map["REF_ID"], map["ALT_ID"]]).unique())
-
-    return (total, removed)
-
-
-if __name__ == "__main__":
-    parser = OptionParser("%prog [options]")
-    parser.add_option("-s", "--seqs", dest="seqs",
-                      help="File containing the designed oligos (def '')", default="results/oligo_design/test_1/design.fa")
-    parser.add_option("-r", "--regions", dest="regions",
-                      help="File containing the regions (def '')", default="results/oligo_design/test_1/design.regions.bed.gz")
-    parser.add_option("-m", "--seq-map", dest="seq_map",
-                      help="Map that maps sequences to regions and variants", default="results/oligo_design/test_1/variant_region_map.tsv.gz")
-    parser.add_option("-z", "--max_homopolymer_length", dest="maxHomLength",
-                      help="Maximum homopolymer length (def 10)", default=10, type="int")  # deactivated before
-    parser.add_option("-f", "--repeat", dest="repeat",
-                      help="Maximum fraction explained by a single simple repeat annotation (def 0.25)", default=0.25, type="float")
-    parser.add_option("--simple-repeats", dest="simple_repeats_file",
-                      help="Bedfile for simple repeats", default="reference/simpleRepeat.bed.gz")
-    parser.add_option("--tss-positions", dest="tss_pos_file",
-                      help="Bedfile for TSS positions", default="reference/TSS_pos.bed.gz")
-    parser.add_option("--ctcf-motifs", dest="ctcf_motif_file",
-                      help="Bedfile for ctcf motifs", default="reference/CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz")
-    parser.add_option("-o", "--output-map", dest="map_out",
-                      help="Output file of filtered sequence map", default="results/oligo_design/test_1/filtered.variant_region_map.tsv.gz")
-    parser.add_option("-i", "--output-failed-variants", dest="variants_failed_out",
-                      help="Output file of failed variant ids", default="results/oligo_design/test_1/failed.var.ids.txt")
-    parser.add_option("-u", "--remove-unused-regions", dest="remove_unused",
-                      help="Whether sequences without variants should be kept (def True)", default="true")
-    (options, args) = parser.parse_args()
-
-    repeatIndex = pysam.Tabixfile(options.simple_repeats_file)
-    TSSIndex = pysam.Tabixfile(options.tss_pos_file)
-    CTCFIndex = pysam.Tabixfile(options.ctcf_motif_file)
-
-    remove_unused = options.remove_unused.lower() == "true"
-
-    selectedSeqs = {}
-    failedSeqs = []
+    repeatIndex = pysam.Tabixfile(simple_repeats_file)
+    TSSIndex = pysam.Tabixfile(tss_pos_file)
+    CTCFIndex = pysam.Tabixfile(ctcf_motif_file)
 
     fail_reasons = {}
     failed = {}
 
-    if options.regions and os.path.exists(options.regions):
-        failed["regions"], fail_reasons = regions_filter(options.regions, repeatIndex, TSSIndex, CTCFIndex, options.repeat)
+    if regions_file:
+        failed["regions"], fail_reasons = regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, repeat)
 
-    if options.seqs and os.path.exists(options.seqs):
-        failed["seqs"], reasons = seqs_filter(options.seqs, options.maxHomLength)
+    if seqs_file:
+        failed["seqs"], reasons = seqs_filter(seqs_file, maxHomLength)
         fail_reasons |= reasons
 
-    total, removed = write_output(failed, options.seq_map, remove_unused, options.map_out)
-
-    with open(options.variants_failed_out, 'wt') as out:
-        out.writelines(failedSeqs)
+    total, removed = write_output(failed, variant_map_in, map_in,
+                                  remove_regions_without_variants, variant_map_out, map_out)
 
     print("""Failed sequences: 
     %d due to homopolymers 
@@ -210,3 +94,45 @@ if __name__ == "__main__":
     %d due to EcoRI or SbfI restriction site overlap""" % (fail_reasons.get("hompol", 0), fail_reasons.get("repeats", 0), fail_reasons.get("TSS", 0), fail_reasons.get("CTCF", 0), fail_reasons.get("restrictions", 0)))
     print("Total failed: %d" % (removed))
     print("Total passed sequences: %d" % (total-removed))
+
+
+def write_output(failed, variant_map_file, map_file, remove_unused, variant_map_out_file, map_out_file):
+
+    if variant_map_file:
+        variant_map = pd.read_csv(variant_map_file, sep="\t")
+    else:
+        variant_map = pd.DataFrame(columns=["Variant", "Region", "REF_ID", "ALT_ID"])
+    map = pd.read_csv(map_file, sep="\t")
+
+    total = len(pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], map["ID"]]).unique())
+
+    if "regions" in failed:
+        for rid in failed["regions"]:
+            if rid in map["Region"].values:
+                map = map.drop(map[map["Region"] == rid].index)
+            if rid in variant_map["Region"].values:
+                variant_map = variant_map.drop(variant_map[variant_map["Region"] == rid].index)
+
+    if "seqs" in failed:
+        for sid in failed["seqs"]:
+            if sid in map["ID"].values:
+                map = map.drop(map[map["ID"] == sid].index)
+            if sid in variant_map["REF_ID"].values:
+                variant_map = variant_map.drop(variant_map[variant_map["REF_ID"] == sid].index)
+            if sid in variant_map["ALT_ID"].values:
+                variant_map = variant_map.drop(variant_map[variant_map["ALT_ID"] == sid].index)
+        if remove_unused:
+                map = map[~map["ID"].isin(pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"]]).unique())]
+
+    if variant_map_out_file:
+        variant_map.to_csv(variant_map_out_file, compression='gzip', sep="\t", index=False)
+
+    map.to_csv(map_out_file, compression='gzip', sep="\t", index=False)
+
+    removed = total - len(pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], map["ID"]]).unique())
+
+    return (total, removed)
+
+
+if __name__ == '__main__':
+    cli()

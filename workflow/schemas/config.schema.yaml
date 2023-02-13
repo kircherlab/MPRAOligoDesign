@@ -6,9 +6,35 @@ type: object
 
 # possible entries of the config file and which type they should be
 properties:
-  samples:
-    type: string
+  datasets:
+    type: object
+    description: "datasets to be processed"
+    properties:
+      variants_only:
+        description: "List of tsv files with variants and samples  to be processed"
+        type: array
+        items:
+          type: string
+      regions_only:
+        description: "List of tsv files with regions and samples to be processed"
+        type: array
+        items:
+          type: string
+      variants_regions:
+        description: "List of tsv files with variants, regions and samples  to be processed"
+        type: array
+        items:
+          type: string
+      sequences_only:
+        description: "List of tsv files with sequences to be processed"
+        type: array
+        items:
+          type: string
+  oligo_length:
+    type: integer
+    description: "Length of oligos to be designed"
+    minimum: 1
 
 # entries that have to be in the config file for successful validation
 required:
-  - samples
+  - datasets

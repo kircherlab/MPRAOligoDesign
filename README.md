@@ -1,14 +1,26 @@
 # Snakemake workflow: MPRAOligoDesign
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥7.15.2-brightgreen.svg)](https://snakemake.bitbucket.io)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg)](https://snakemake.bitbucket.io)
 ![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
-
-[![Build Status](https://travis-ci.org/snakemake-workflows/MPRAOligoDesign.svg?branch=master)](https://travis-ci.org/snakemake-workflows/MPRAOligoDesign)
 
 Workflow to design oligos for MPRA out of regions (and variants)
 
-This is the template for a new Snakemake workflow. Replace this text with a comprehensive description covering the purpose and domain.
-Insert your code into the respective folders, i.e. `scripts`, `rules`, and `envs`. Define the entry point of the workflow in the `Snakefile` and the main configuration in the `config.yaml` file.
+
+Workflow to gerenate an oligo design for an MPRA experiments. It has mltiple ways to generate sequences:
+
+1. Variants (vcf) + regions (bed)
+2. Variants (vcf)
+3. Regions (bed)
+4. Sequnces (fasta)
+
+All 4 strategies can be combined latzer into one final design files. This allows you to put controlls as well as your deisgn in one workflow.
+
+When sequences are generated it filters them with multiple check:
+1. Homopolymer size (for all)
+2. EcoRI or SbfI restriction site  (for all)
+3. Simple repeats (not pure sequences)
+4. TSS site overlap (not pure sequences)
+5. CTCF overlap (not pure sequences)
 
 ## Authors
 
@@ -20,12 +32,11 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 
 ### Step 1: Obtain a copy of this workflow
 
-1. Create a new github repository using this workflow [as a template](https://help.github.com/en/articles/creating-a-repository-from-a-template).
-2. [Clone](https://help.github.com/en/articles/cloning-a-repository) the newly created repository to your local system, into the place where you want to perform the data analysis.
+[Clone](https://help.github.com/en/articles/cloning-a-repository) the newly created repository to your local system, into the place where you want to perform the data analysis.
 
 ### Step 2: Configure workflow
 
-Configure the workflow according to your needs via editing the files in the `config/` folder. Adjust `config.yaml` to configure the workflow execution, and `samples.tsv` to specify your sample setup.
+Configure the workflow according to your needs is via a config file. An example conmfig can be found in the `config/` folder. Adjust `config_test_samples.yml` to configure the workflow execution. For each input strategy you use (see above) You have to sepcify tab separated files with the (unique) sample id and where the input files are located in your file system. You can use relative or full paths (full paths recommended). relative means relative to your excecution folder.
 
 ### Step 3: Install Snakemake
 
@@ -41,37 +52,33 @@ Activate the conda environment:
 
     conda activate snakemake
 
+You can run the workflow in any directory. You just need read access to the cloned repository. This makes it easier to use the same workflow on multiple projects.
+
 Test your configuration by performing a dry-run via
 
-    snakemake --use-conda -n
+    snakemake --use-conda -n --configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
 
 Execute the workflow locally via
 
-    snakemake --use-conda --cores $N
+    snakemake --use-conda --cores $N -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
 
 using `$N` cores or run it in a cluster environment via
 
-    snakemake --use-conda --cluster qsub --jobs 100
+    snakemake --use-conda --cluster qsub --jobs 100 -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
 
-or
-
-    snakemake --use-conda --drmaa --jobs 100
 
 If you not only want to fix the software stack but also the underlying OS, use
 
-    snakemake --use-conda --use-singularity
+    snakemake --use-conda --use-singularity -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
 
 in combination with any of the modes above.
 See the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executable.html) for further details.
 
 ### Step 5: Investigate results
 
-After successful execution, you can create a self-contained interactive HTML report with all results via:
+After successful execution there should be a `results` folder. Under `results/final_design/` all sample ids are listed with the corresponding design file `results/final_design/<sample_id>/design.fa.gz`. A combied design file can be found here: `results/final_design/design.fa.gz`
 
-    snakemake --report report.html
-
-This report can, e.g., be forwarded to your collaborators.
-An example (using some trivial test data) can be seen [here](https://cdn.rawgit.com/snakemake-workflows/rna-seq-kallisto-sleuth/master/.test/report.html).
+If you want to get an overview why several sequences/regions are removed you can check the file `results/oligo_design/<sample_id>/design_<variants/sequences/regions>_filter.log`. `variants/sequences/regions` depends on the input you used.
 
 ### Step 6: Commit changes
 

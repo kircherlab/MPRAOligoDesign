@@ -19,7 +19,7 @@ import copy as cp
               'min_overlap',
               required=True,
               type=int,
-              help='Length of oligo')
+              help='Min overlap of two oligos')
 @click.option('--output',
               'output_file',
               required=True,

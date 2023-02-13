@@ -1,0 +1,2 @@
+sample	vcf_file
+variants_only_1	resources/controls/noncoding_mendelian_promoter_enhancers/noncoding_mendelian_promoters_enhancers.vcf.gz

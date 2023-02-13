@@ -21,3 +21,9 @@ analysis/*
 !.flake8
 !LICENSE
 !README.md
+
+# python
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class

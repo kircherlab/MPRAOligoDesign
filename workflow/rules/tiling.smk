@@ -5,7 +5,7 @@ rule tiling_extendRegions:
     conda:
         "../envs/default.yaml"
     input:
-        regions=lambda wc: samples[wc.sample]["bed_file"],
+        regions=lambda wc: datasets[wc.sample]["bed_file"],
         genome_file=config["reference"]["genome"],
     output:
         "results/tiling/{sample}/regions/extended.bed.gz",
@@ -32,7 +32,7 @@ rule tiling_splitUpForStrategies:
         twoTiles_tmp=temp("results/tiling/{sample}/strategies/regions.twoTiles.bed"),
         centeredTiles="results/tiling/{sample}/strategies/regions.centeredTiles.bed.gz",
     params:
-        oligo_length=config["oligo_length"],
+        max_centering=config["tiling"]["strategies"]["centering"]["max"],
         max_two_tiles=tiling_getMinTwoTiles(),
     log:
         "results/logs/tiling/splitUpForStrategies.{sample}.log",
@@ -41,7 +41,7 @@ rule tiling_splitUpForStrategies:
         touch {output.noTiling_tmp};
         touch {output.twoTiles_tmp};
         (
-            if [[ $(file -b --mime-type "{input.regions}") == 'application/gzip' ]]; then
+            if [[ $(file -b --mime-type "{input.regions}") == 'application/gzip' || $(file -b --mime-type "{input.regions}") == 'application/x-gzip' ]]; then
                 zcat {input.regions}
             else
                 cat {input.regions}
@@ -49,7 +49,7 @@ rule tiling_splitUpForStrategies:
         ) | \
         awk -v FS="\\t" -v OFS="\\t" \
         '{{ 
-            if ($3 - $2 <= {params.oligo_length}) {{print > "{output.noTiling_tmp}" }}
+            if ($3 - $2 <= {params.max_centering}) {{print > "{output.noTiling_tmp}" }}
             else if ($3 - $2 <= {params.max_two_tiles}) {{ print > "{output.twoTiles_tmp}" }}
             else {{ print }}
         }}' | bgzip -c > {output.centeredTiles} 2> {log};
