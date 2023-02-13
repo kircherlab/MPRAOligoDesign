@@ -141,6 +141,7 @@ rule final_design_combine_variants_idx:
         tabix {input} &> {log};
         """
 
+
 rule final_design_combine_variants:
     """
     Combine designed variants

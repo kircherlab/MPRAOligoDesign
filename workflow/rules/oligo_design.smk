@@ -26,7 +26,8 @@ rule oligo_design_getSequencesInclVariants:
         regions="results/oligo_design/{sample}/design_variants.regions.bed.gz",
         regions_removed="results/oligo_design/{sample}/removed.regions.bed.gz",
         design="results/oligo_design/{sample}/design_variants.fa",
-        design_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
+        design_variant_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
+        design_region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
     params:
         variant_edge_exclusion=config["tiling"]["variant_edge_exclusion"],
         use_most_centered_region="--use-most-centered-region-for-variant"
@@ -47,7 +48,8 @@ rule oligo_design_getSequencesInclVariants:
         --output-regions {output.regions} \
         --output-regions-without-variants {output.regions_removed} \
         --output-design {output.design} \
-        --output-design-map {output.design_map} \
+        --output-design-variant-map {output.design_variant_map} \
+        --output-design-region-map {output.design_region_map} \
         --reference {input.ref} \
         {params.remove_regions_without_variants} --variant-edge-exclusion {params.variant_edge_exclusion} {params.use_most_centered_region} &> {log}
         """
@@ -64,20 +66,22 @@ rule oligo_design_variants_filterOligos:
     input:
         regions="results/oligo_design/{sample}/design_variants.regions.bed.gz",
         design="results/oligo_design/{sample}/design_variants.fa",
-        seq_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
+        variant_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
+        region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
         ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
-        script=getScript("oligo_design/filterOligos_variants.py"),
+        script=getScript("oligo_design/filterOligos.py"),
     output:
-        #design="results/oligo_design/{sample}/filtered.design.fa",
-        out_map="results/oligo_design/{sample}/design_variants_filtered.variant_region_map.tsv.gz",
-        #variant_ids="results/oligo_design/{sample}/filtered.var.ids.txt",
-        vatiants_failed="results/oligo_design/{sample}/design_variants_failed.var.ids.txt",
+        out_variant_map="results/oligo_design/{sample}/design_variants_filtered.variant_region_map.tsv.gz",
+        out_region_map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
         statistic="results/oligo_design/{sample}/design_variants_filter.log",
     params:
         repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"],
         max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
+        remove_regions_without_variants="--remove-regions-without-variants"
+        if config["oligo_design"]["variants"]["remove_unused_regions"]
+        else "--keep-regions-without-variants",
     log:
         "logs/oligo_design/filterOligos.{sample}.log",
     shell:
@@ -85,14 +89,16 @@ rule oligo_design_variants_filterOligos:
         python {input.script} \
         --seqs {input.design} \
         --regions {input.regions} \
-        --seq-map {input.seq_map} \
+        --variant-map {input.variant_map} \
+        --map {input.region_map} \
         --repeat {params.repeats} \
         --max_homopolymer_length {params.max_hom} \
         --tss-positions {input.tss} \
         --ctcf-motifs {input.ctcf} \
         --simple-repeats {input.simple_repeats} \
-        --output-map {output.out_map} \
-        --output-failed-variants {output.vatiants_failed} \
+        {params.remove_regions_without_variants} \
+        --output-map {output.out_region_map} \
+        --output-variant-map {output.out_variant_map} \
         > {output.statistic} 2> {log}
         """
 
@@ -102,7 +108,7 @@ rule oligo_design_variants_filter_regions:
     conda:
         "../envs/default.yaml"
     input:
-        map="results/oligo_design/{sample}/design_variants_filtered.variant_region_map.tsv.gz",
+        map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
         regions="results/oligo_design/{sample}/design_variants.regions.bed.gz",
     output:
         regions="results/oligo_design/{sample}/design_variants_filtered.regions.bed.gz",
@@ -110,8 +116,8 @@ rule oligo_design_variants_filter_regions:
         "logs/oligo_design/filter_regions.{sample}.log",
     shell:
         """
-        awk 'NR=FNR{{a[$4][$0]}} $2 in a {{for (i in a[$2]) print i}}' \
-        <(zcat {input.regions}) <(zcat {input.map}) | \
+        awk 'NR=FNR{{a[$4][$0]}} $1 in a {{for (i in a[$1]) print i}}' \
+        <(zcat {input.regions}) <(zcat {input.map}) | sort -k1,1 -k2,2n | uniq | \
         bgzip -c > {output.regions} 2> {log}"""
 
 
@@ -120,7 +126,7 @@ rule oligo_design_variants_filter_seqs:
     conda:
         "../envs/default.yaml"
     input:
-        map="results/oligo_design/{sample}/design_variants_filtered.variant_region_map.tsv.gz",
+        map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
         seqs="results/oligo_design/{sample}/design_variants.fa",
     output:
         seqs="results/oligo_design/{sample}/design_variants_filtered.design.fa",
@@ -128,13 +134,14 @@ rule oligo_design_variants_filter_seqs:
         "logs/oligo_design/filter_seqs.{sample}.log",
     shell:
         """
-        awk 'NR=FNR {{a[$3]; a[$4]}} {{if ($1 ~ /^>/) id=substr($1,2); if (id in a) print $0}}' \
+        awk 'NR=FNR {{a[$2]}} {{if ($1 ~ /^>/) id=substr($1,2); if (id in a) print $0}}' \
         <(zcat {input.map}) {input.seqs} > {output.seqs} 2> {log}
         """
 
 
 rule oligo_design_variants_filter_variants:
-    """Retain only those variants which are still included after filtering the oligos.
+    """
+    Retain only those variants which are still included after filtering the oligos.
     """
     conda:
         "../envs/default.yaml"
@@ -147,8 +154,11 @@ rule oligo_design_variants_filter_variants:
         "logs/oligo_design/filter_variants.{sample}.log",
     shell:
         """
-        cat <(zgrep '^#' {input.variants} ) <( awk 'NR=FNR{{a[$3][$0]}} $1 in a {{for (i in a[$1]) print i}}' \
-        <(zcat {input.variants}) <(zcat {input.map})) | \
+        (
+            zgrep '^#' {input.variants};
+            awk 'NR=FNR{{a[$3][$0]}} $1 in a {{for (i in a[$1]) print i}}' \
+            <(zcat {input.variants}) <(zcat {input.map}) | sort -k1,1 -k2,2n -k3,3 | uniq;
+        ) | \
         bgzip -c > {output.filtered_variants} 2> {log}
         """
 
@@ -220,7 +230,7 @@ rule oligo_design_regions_filterOligos:
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
         ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
-        script=getScript("oligo_design/filterOligos_regions_sequences.py"),
+        script=getScript("oligo_design/filterOligos.py"),
     output:
         out_map="results/oligo_design/{sample}/design_regions_filtered.region_map.tsv.gz",
         statistic="results/oligo_design/{sample}/design_regions_filter.log",
@@ -259,7 +269,7 @@ rule oligo_design_regions_filter_regions:
     shell:
         """
         awk 'NR=FNR{{a[$4][$0]}} $2 in a {{for (i in a[$1]) print i}}' \
-        <(zcat {input.regions}) <(zcat {input.map}) | \
+        <(zcat {input.regions}) <(zcat {input.map}) | sort -k1,1 -k2,2n | uniq | \
         bgzip -c > {output.regions} 2> {log}
         """
 
@@ -330,7 +340,7 @@ rule oligo_design_seq_filterOligos:
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
         ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
-        script=getScript("oligo_design/filterOligos_regions_sequences.py"),
+        script=getScript("oligo_design/filterOligos.py"),
     output:
         out_map="results/oligo_design/{sample}/design_sequences_filtered.sequence_map.tsv.gz",
         statistic="results/oligo_design/{sample}/design_sequences_filter.log",

@@ -49,11 +49,16 @@ from pyfaidx import Fasta
               required=True,
               type=click.Path(writable=True),
               help='Output design file')
-@click.option('--output-design-map',
-              'output_design_map_file',
+@click.option('--output-design-variant-map',
+              'output_design_variant_map_file',
               required=True,
               type=click.Path(writable=True),
-              help='Output design map file')
+              help='Output design variant map file')
+@click.option('--output-design-region-map',
+              'output_design_region_map_file',
+              required=True,
+              type=click.Path(writable=True),
+              help='Output design region map file')
 @click.option('--variant-edge-exclusion',
               'variant_edge_exclusion',
               required=True,
@@ -67,7 +72,7 @@ from pyfaidx import Fasta
               'use_most_centered_region_for_variant',
               required=True,
               help="Only use one region where the variant is most centered on")
-def cli(input_region_file, input_variant_file, reference_file, output_variant_file, output_removed_variant_file, output_region_file, output_removed_region_file, output_design_file, output_design_map_file, variant_edge_exclusion, remove_regions_without_variants, use_most_centered_region_for_variant):
+def cli(input_region_file, input_variant_file, reference_file, output_variant_file, output_removed_variant_file, output_region_file, output_removed_region_file, output_design_file, output_design_variant_map_file, output_design_region_map_file, variant_edge_exclusion, remove_regions_without_variants, use_most_centered_region_for_variant):
 
     vcf_reader = vcfpy.Reader.from_path(input_variant_file)
     vcf_removed_writer = vcfpy.Writer.from_path(output_removed_variant_file, vcf_reader.header)
@@ -84,6 +89,7 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
     regions_output = pd.DataFrame()
     ref_sequences = pd.DataFrame(columns="ID Sequence".split())
     alt_sequences = pd.DataFrame(columns="ID Sequence".split())
+    sequences = pd.DataFrame(columns="ID Sequence".split())
     design_map = pd.DataFrame(columns="Variant Region REF_ID ALT_ID".split())
     # take variant edges into account
     regions_variant_edges = cp.deepcopy(regions)
@@ -114,7 +120,8 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
         region_names = []
         for region_name, alt_seq, ref_seq in getSequences(reference, region_slice, variant_record):
             if (len(variant_record.ID) == 0):
-                variant_id = variant_record.CHROM + "-" + str(variant_record.POS) + "-" + variant_record.REF + "-" + variant_record.ALT[0].value
+                variant_id = variant_record.CHROM + "-" + \
+                    str(variant_record.POS) + "-" + variant_record.REF + "-" + variant_record.ALT[0].value
             else:
                 variant_id = variant_record.ID[0]
             alt_id = "ALT_"+region_name + "_" + variant_id
@@ -136,16 +143,34 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
     design_map.drop_duplicates(inplace=True, ignore_index=True)
     ref_sequences.drop_duplicates(inplace=True, ignore_index=True)
     alt_sequences.drop_duplicates(inplace=True, ignore_index=True)
+
     vcf_writer.close()
     vcf_removed_writer.close()
 
-    design_map.to_csv(output_design_map_file, sep="\t", index=False, header=True)
+    design_map.to_csv(output_design_variant_map_file, sep="\t", index=False, header=True)
+
+    regions_map = pd.DataFrame({"Region": pd.concat([design_map["Region"], design_map["Region"]]),
+                               "ID": pd.concat([design_map["REF_ID"], design_map["ALT_ID"]])})
+    regions_map = regions_map.drop_duplicates(ignore_index=True)
 
     if (remove_regions_without_variants):
         regions_output.drop_duplicates(ignore_index=True).to_csv(output_region_file, sep="\t", header=False, index=False)
 
     else:
-        regions.as_df().to_csv(output_region_file, sep="\t", header=False, index=False)
+        regions_df = regions.as_df()
+        regions_df.to_csv(output_region_file, sep="\t", header=False, index=False)
+        regions_df = regions_df[~regions_df["Name"].isin(design_map["Region"].unique())]
+
+        # add additional regions without variants as sequences
+        for index, row in regions_df.iterrows():
+            complement = row["Strand"] == "-"
+            seq = reference[row["Chromosome"]][row["Start"]:row["End"]].seq
+            if complement:
+                seq = str(Seq(seq).reverse_complement())
+            regions_map = pd.concat([regions_map, pd.DataFrame({"Region": [row["Name"]], "ID": [row["Name"]]})])
+            sequences = pd.concat([sequences, pd.DataFrame({"ID": [row["Name"]], "Sequence": [seq]})])
+
+    regions_map.drop_duplicates(ignore_index=True).to_csv(output_design_region_map_file, sep="\t", header=True, index=False)
 
     removed_regions = pd.merge(regions.as_df(), regions_output, how="outer", indicator=True)
     removed_regions = removed_regions[removed_regions._merge == "left_only"]
@@ -154,6 +179,9 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
     removed_regions.to_csv(output_removed_region_file, sep="\t", header=False, index=False)
 
     with open(output_design_file, "w") as design_file_writer:
+        for index, row in sequences.iterrows():
+            design_file_writer.write(">"+row["ID"]+"\n")
+            design_file_writer.write(row["Sequence"]+"\n")
         for index, row in ref_sequences.iterrows():
             design_file_writer.write(">"+row["ID"]+"\n")
             design_file_writer.write(row["Sequence"]+"\n")
@@ -174,11 +202,11 @@ def getSequences(reference, regions, variant_record):
         for i, alt in enumerate(variant_record.ALT):
             if i > 0:
                 raise Exception("Only one ALT allele is supported for variant %s" % variant_record)
-            
+
             alt_nuc = alt.value
             ref_nuc = variant_record.REF
 
-            end = -(len(alt_nuc)+1 ) if len(alt_nuc) > 1 else None
+            end = -(len(alt_nuc)+1) if len(alt_nuc) > 1 else None
             if alt.type == "SNV" or alt.type == "MNV":
                 alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
             elif alt.type == "INDEL" or alt.type == "INS" or alt.type == "DEL":
@@ -186,7 +214,8 @@ def getSequences(reference, regions, variant_record):
                     alt_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+1):end]
                 else:
                     alt_seq = ref_seq
-                    ref_seq_new = reference[region["Chromosome"]][region["Start"]:(region["End"] + len(ref_nuc) - len(alt_nuc))]
+                    ref_seq_new = reference[region["Chromosome"]][region["Start"]
+                        :(region["End"] + len(ref_nuc) - len(alt_nuc))]
                     ref_seq = ref_seq_new.seq
                     ref_seq = ref_seq[:variant_position] + alt_nuc + ref_seq[(variant_position+len(ref_nuc)):]
             else:

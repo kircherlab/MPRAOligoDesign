@@ -30,6 +30,10 @@ properties:
         type: array
         items:
           type: string
+  oligo_length:
+    type: integer
+    description: "Length of oligos to be designed"
+    minimum: 1
 
 # entries that have to be in the config file for successful validation
 required:
