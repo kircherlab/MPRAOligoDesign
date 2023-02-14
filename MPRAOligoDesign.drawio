@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2023-02-14T12:49:52.287Z" agent="5.0 (Windows)" etag="g0o3l9jJ76t0IzIWZSTa" version="20.8.20" type="github">
+<mxfile host="app.diagrams.net" modified="2023-02-14T12:50:42.590Z" agent="5.0 (Windows)" etag="hkXF49WdbcZrCJESIxGJ" version="20.8.20" type="github">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
     <mxGraphModel dx="1434" dy="2111" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -173,8 +173,13 @@
         <mxCell id="ZryX_eBv5wf3s4xxrK_H-26" value="variant_region_map.gz" style="strokeWidth=2;html=1;shape=mxgraph.flowchart.document2;whiteSpace=wrap;size=0.25;strokeColor=#000000;fillColor=none;" vertex="1" parent="ZryX_eBv5wf3s4xxrK_H-34">
           <mxGeometry x="371" y="34" width="148" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="ZryX_eBv5wf3s4xxrK_H-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;shadow=0;strokeWidth=3;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="ZryX_eBv5wf3s4xxrK_H-36" target="ZryX_eBv5wf3s4xxrK_H-9">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="ZryX_eBv5wf3s4xxrK_H-37" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.25;exitDx=0;exitDy=0;shadow=0;strokeWidth=3;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="ZryX_eBv5wf3s4xxrK_H-36">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="740" y="310" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="916" y="310" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="ZryX_eBv5wf3s4xxrK_H-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;jumpSize=6;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1.004;entryY=0.415;entryDx=0;entryDy=0;entryPerimeter=0;shadow=0;strokeWidth=3;" edge="1" parent="WIyWlLk6GJQsqaUBKTNV-1" source="ZryX_eBv5wf3s4xxrK_H-36" target="VztmP7jNm2-bDzNmiWcb-19">
           <mxGeometry relative="1" as="geometry">
@@ -187,7 +192,7 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="ZryX_eBv5wf3s4xxrK_H-36" value="Config file" style="shape=parallelogram;html=1;strokeWidth=2;perimeter=parallelogramPerimeter;whiteSpace=wrap;rounded=1;arcSize=12;size=0.23;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
-          <mxGeometry x="890" y="340" width="100" height="40" as="geometry" />
+          <mxGeometry x="900" y="300" width="100" height="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
