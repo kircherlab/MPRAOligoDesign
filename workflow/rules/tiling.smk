@@ -1,25 +1,6 @@
 include: "tiling_common.smk"
 
 
-rule tiling_extendRegions:
-    conda:
-        "../envs/default.yaml"
-    input:
-        regions=lambda wc: datasets[wc.sample]["bed_file"],
-        genome_file=config["reference"]["genome"],
-    output:
-        "results/tiling/{sample}/regions/extended.bed.gz",
-    params:
-        variant_edge_exclusion=config["tiling"]["variant_edge_exclusion"],
-    log:
-        "results/logs/tiling/extendRegions.{sample}.log",
-    shell:
-        """
-        bedtools slop -i {input.regions} -g {input.genome_file} -b {params.variant_edge_exclusion} | \
-        bgzip -c > {output} 2> {log}
-        """
-
-
 rule tiling_splitUpForStrategies:
     conda:
         "../envs/default.yaml"
