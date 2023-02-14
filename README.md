@@ -2,6 +2,7 @@
 
 [![Snakemake](https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg)](https://snakemake.bitbucket.io)
 ![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
+[![Documentation Status](https://readthedocs.org/projects/mpraoligodesign/badge/?version=latest)](https://mpraoligodesign.readthedocs.io/en/latest/?badge=latest)
 
 Workflow to gerenate an oligo design for an MPRA experiments. It has mltiple ways to generate sequences:
 
