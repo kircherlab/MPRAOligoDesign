@@ -26,6 +26,10 @@ When sequences are generated it filters them with multiple check:
 
 * Max Schubach (@visze), Berlin Institute of Health (BIH), [Computational Genome Biology](https://kircherlab.bihealth.org)
 
+## Overview
+
+![MPRA Oligo Design overview](MPRAOligoDesign.png)
+
 ## Usage
 
 If you use this workflow in a paper, don't forget to give credits to the authors by citing the URL of this (original) repository and, if available, its DOI (see above).
