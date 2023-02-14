@@ -1,0 +1,38 @@
+reference:
+  genome: /fast/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa.genome
+  fasta: /fast/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa
+
+datasets:
+  variants_only: 
+    - design.control_variants.tsv
+  variants_regions: 
+    - design.samples_combined.tsv
+    - design.control_variants_regions.tsv
+  regions_only:  
+    - design.control_regions.tsv
+  sequences_only: 
+    - design.control_sequences.tsv
+
+
+oligo_length: 270
+
+tiling:
+  remove_edge_variants: true
+  min_overlap: 50
+  strategies:
+    centering:
+      max: 270
+    two_tiles:
+      max: 350 # or 2*270 -2 *50 - 2*25
+      include_variant_edge: true
+  variant_edge_exclusion: 25
+oligo_design:
+  variants:
+    use_most_centered_region: false
+    remove_unused_regions: false
+  filtering:
+    max_homopolymer_length: 10
+    max_simple_repeat_fraction: 0.25
+  adapters:
+    left: AGGACCGGATCAACT
+    right: CATTGCGTGAACCGA

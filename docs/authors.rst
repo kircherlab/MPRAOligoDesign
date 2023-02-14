@@ -14,4 +14,6 @@ in alphabetical order
 Contributors
 ------------
 
-- You name here
+- Martin Kircher
+- Mohan Dash
+- Pia Keukeleire

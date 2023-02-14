@@ -3,9 +3,6 @@
 [![Snakemake](https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg)](https://snakemake.bitbucket.io)
 ![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
 
-Workflow to design oligos for MPRA out of regions (and variants)
-
-
 Workflow to gerenate an oligo design for an MPRA experiments. It has mltiple ways to generate sequences:
 
 1. Variants (vcf) + regions (bed)
@@ -28,7 +25,7 @@ When sequences are generated it filters them with multiple check:
 
 ## Overview
 
-![MPRA Oligo Design overview](MPRAOligoDesign.png)
+![MPRA Oligo Design overview](docs/MPRAOligoDesign.png)
 
 ## Usage
 
