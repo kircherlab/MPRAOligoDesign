@@ -40,7 +40,4 @@ rule all:
             "results/final_design/{sample}/regions.bed.gz",
             sample=getRegionDatasets(),
         ),
-        "results/final_design/design.fa.gz",
-        "results/final_design/variants.vcf.gz",
-        "results/final_design/variant_region_map.tsv.gz",
-        "results/final_design/regions.bed.gz",
+        getFinalOutput()

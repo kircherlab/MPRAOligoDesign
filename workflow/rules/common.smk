@@ -60,6 +60,7 @@ if "sequences_only" in config["datasets"]:
         validate(df, schema="../schemas/datasets_sequences_only.schema.yaml")
         datasets = pd.concat([datasets, df])
 
+
 def isVariantsAndRegionsSample(sample):
     """
     Returns True if the sample is a variants and regions sample, False otherwise.
@@ -119,6 +120,32 @@ def getVariantDatasets():
         return datasets[datasets["vcf_file"].notnull()].index.tolist()
     else:
         return []
+
+
+def hasVariants():
+    """
+    Returns True if the workflow contains variants, False otherwise.
+    """
+    return len(getVariantDatasets()) > 0
+
+
+def hasRegions():
+    """
+    Returns True if the workflow contains regions, False otherwise.
+    """
+    return len(getRegionDatasets()) > 0
+
+
+def getFinalOutput():
+    output = ["results/final_design/design.fa.gz"]
+    if hasVariants():
+        output += [
+            "results/final_design/variants.vcf.gz",
+            "results/final_design/variant_region_map.tsv.gz",
+        ]
+    if hasRegions():
+        output += ["results/final_design/regions.bed.gz"]
+    return output
 
 
 def getFinalRegionFile(sample):
