@@ -104,7 +104,7 @@ rule oligo_design_variants_filterOligos:
         "../envs/filter.yaml"
     input:
         regions="results/oligo_design/{sample}/design_variants.regions.bed.gz",
-        design="results/oligo_design/{sample}/design_regions.adapters.fa",
+        design="results/oligo_design/{sample}/design_variants.adapters.fa",
         variant_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
         region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
@@ -166,7 +166,7 @@ rule oligo_design_variants_filter_seqs:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
-        seqs="results/oligo_design/{sample}/design_regions.adapters.fa",
+        seqs="results/oligo_design/{sample}/design_variants.adapters.fa",
     output:
         seqs="results/oligo_design/{sample}/design_variants_filtered.design.fa",
     log:
