@@ -69,7 +69,7 @@ rule final_design_add_IDs:
     output:
         "results/final_design/{sample}/design.fa.gz",
     log:
-        "logs/final_design/add_adapters.{sample}.log",
+        "logs/final_design/add_IDs.{sample}.log",
     params:
         sample=lambda wc: wc.sample,
     shell:
