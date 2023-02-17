@@ -103,7 +103,6 @@ def seqs_filter(seqs, max_hom):
 
     fasta = fastaReader(seqfile)
     for cid, seq in fasta:
-        failed = False
         if (max_hom == None) or (nucleotideruns(seq) <= max_hom):
             foundRestrictionSite = False
             for ind, (site, pos) in enumerate(restriction_sites):
