@@ -1,3 +1,41 @@
+rule oligo_design_add_adapters:
+    """
+    Add adapters to sequences.
+    """
+    conda:
+        "../envs/default.yaml"
+    input:
+        "results/oligo_design/{sample}/{design_type}.fa",
+    output:
+        "results/oligo_design/{sample}/{design_type}.adapters.fa",
+    log:
+        "logs/oligo_design/add_adapters.{sample}.{design_type}.log",
+    params:
+        left=config["oligo_design"]["adapters"]["left"],
+        right=config["oligo_design"]["adapters"]["right"],
+    shell:
+        """
+        cat {input} | \
+        sed 's/\\r//' | \
+        awk 'BEGIN{{
+            seq="";header=""
+        }}{{
+            if ($0 ~ /^>/) {{
+                if (seq != "") {{
+                    print header;
+                    print "{params.left}"seq"{params.right}";
+                }}
+                header=$0;
+                seq="";
+            }} else {{
+                seq=seq toupper($1);
+            }}
+        }}END{{
+            print header;
+            print "{params.left}"seq"{params.right}";
+        }}' > {output} 2> {log}
+        """
+
 ##################
 #### variants ####
 ##################
@@ -326,45 +364,6 @@ rule oligo_design_seq_getsequenceMap:
         gzip -c > {output.design_map} 2> {log};
 
         cp {input} {output.fasta};
-        """
-
-
-rule oligo_design_add_adapters:
-    """
-    Add adapters to sequences.
-    """
-    conda:
-        "../envs/default.yaml"
-    input:
-        "results/oligo_design/{sample}/{design_type}.fa",
-    output:
-        "results/oligo_design/{sample}/{design_type}.adapters.fa",
-    log:
-        "logs/oligo_design/add_adapters.{sample}.{design_type}.log",
-    params:
-        left=config["oligo_design"]["adapters"]["left"],
-        right=config["oligo_design"]["adapters"]["right"],
-    shell:
-        """
-        cat {input} | \
-        sed 's/\\r//' | \
-        awk 'BEGIN{{
-            seq="";header=""
-        }}{{
-            if ($0 ~ /^>/) {{
-                if (seq != "") {{
-                    print header;
-                    print "{params.left}"seq"{params.right}";
-                }}
-                header=$0;
-                seq="";
-            }} else {{
-                seq=seq toupper($1);
-            }}
-        }}END{{
-            print header;
-            print "{params.left}"seq"{params.right}";
-        }}' > {output} 2> {log}
         """
 
 
