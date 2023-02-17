@@ -346,6 +346,8 @@ rule oligo_design_add_adapters:
         right=config["oligo_design"]["adapters"]["right"],
     shell:
         """
+        cat {input} | \
+        sed 's/\\r//' | \
         awk 'BEGIN{{
             seq="";header=""
         }}{{
@@ -362,7 +364,7 @@ rule oligo_design_add_adapters:
         }}END{{
             print header;
             print "{params.left}"seq"{params.right}";
-        }}' {input} > {output} 2> {log}
+        }}' > {output} 2> {log}
         """
 
 
@@ -410,7 +412,7 @@ rule oligo_design_sequences_filter_seqs:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_sequences_filtered.sequence_map.tsv.gz",
-        seqs=lambda wc: datasets.loc[wc.sample, "fasta_file"],
+        seqs="results/final_design/{sample}/design_sequences.adapters.fa",
     output:
         seqs="results/oligo_design/{sample}/design_sequences_filtered.design.fa",
     log:
