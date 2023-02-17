@@ -74,13 +74,14 @@ rule final_design_add_IDs:
         sample=lambda wc: wc.sample,
     shell:
         """
+        cat {input} | \
         awk '{{
             if ($0 ~ /^>/) {{
                 print ">{params.sample}:"substr($0,2);
             }} else {{
                 print $0;
             }}
-        }}' {input} | \ 
+        }}' | \ 
         bgzip -c > {output} 2> {log}
         """
 
