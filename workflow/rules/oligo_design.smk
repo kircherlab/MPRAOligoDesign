@@ -36,6 +36,7 @@ rule oligo_design_add_adapters:
         }}' > {output} 2> {log}
         """
 
+
 ##################
 #### variants ####
 ##################
