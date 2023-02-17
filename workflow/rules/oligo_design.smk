@@ -183,7 +183,7 @@ rule oligo_design_regions_getSequences:
         "logs/oligo_design/regions_getSequences.{sample}.log",
     shell:
         """
-        error=`zcat {input.regions} | awk '{{if ($3-$2 != {params.region_size}) {{print $4}}}}'`
+        error=`zcat {input.regions} | awk '{{if ($3-$2 != {params.region_size}) {{print $4, $3-$2}}}}'`
         if [ -n "${{error}}" ]; then
             echo "ERROR: The following regions have a different size than the oligo length: $error"
             exit 1
