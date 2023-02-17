@@ -377,7 +377,7 @@ rule oligo_design_seq_filterOligos:
     conda:
         "../envs/filter.yaml"
     input:
-        design="results/final_design/{sample}/design_sequences.adapters.fa",
+        design="results/oligo_design/{sample}/design_sequences.adapters.fa",
         design_map="results/oligo_design/{sample}/design_sequences.sequence_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
@@ -412,7 +412,7 @@ rule oligo_design_sequences_filter_seqs:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_sequences_filtered.sequence_map.tsv.gz",
-        seqs="results/final_design/{sample}/design_sequences.adapters.fa",
+        seqs="results/oligo_design/{sample}/design_sequences.adapters.fa",
     output:
         seqs="results/oligo_design/{sample}/design_sequences_filtered.design.fa",
     log:
