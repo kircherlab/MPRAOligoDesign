@@ -3,9 +3,6 @@
 import re
 import gzip
 
-LEFT = "AGGACCGGATCAACT"
-RIGHT = "CATTGCGTGAACCGA"
-
 translation = {"B": "[CGT]", "D": "[AGT]", "H": "[ACT]", "K": "[GT]",
                "M": "[AC]", "N": ".", "R": "[AG]", "S": "[CG]",
                "V": "[ACG]", "W": "[AT]", "Y": "[CT]",
@@ -106,12 +103,11 @@ def seqs_filter(seqs, max_hom):
 
     fasta = fastaReader(seqfile)
     for cid, seq in fasta:
-        cseq = LEFT + seq + RIGHT[:5]
         failed = False
-        if (max_hom == None) or (nucleotideruns(cseq) <= max_hom):
+        if (max_hom == None) or (nucleotideruns(seq) <= max_hom):
             foundRestrictionSite = False
             for ind, (site, pos) in enumerate(restriction_sites):
-                if any(site.finditer(cseq)):
+                if any(site.finditer(seq)):
                     foundRestrictionSite = True
                     break
             if foundRestrictionSite:
