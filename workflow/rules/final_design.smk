@@ -58,9 +58,9 @@ rule final_design_copy_regions:
         """
 
 
-rule final_design_add_adapters:
+rule final_design_add_IDs:
     """
-    Add adapters to the final designed sequences.
+    Add ids to the final designed sequences.
     """
     conda:
         "../envs/default.yaml"
@@ -71,27 +71,15 @@ rule final_design_add_adapters:
     log:
         "logs/final_design/add_adapters.{sample}.log",
     params:
-        left=config["oligo_design"]["adapters"]["left"],
-        right=config["oligo_design"]["adapters"]["right"],
         sample=lambda wc: wc.sample,
     shell:
         """
-        awk 'BEGIN{{
-            seq="";header=""
-        }}{{
+        awk '{{
             if ($0 ~ /^>/) {{
-                if (seq != "") {{
-                    print header;
-                    print "{params.left}"seq"{params.right}";
-                }}
-                header="{params.sample}:"substr($0,2);
-                seq="";
+                print ">{params.sample}:"substr($0,2);
             }} else {{
-                seq+=toupper($1);
+                print $0;
             }}
-        }}END{{
-            print header;
-            print "{params.left}"seq"{params.right}";
         }}' {input} | \ 
         bgzip -c > {output} 2> {log}
         """

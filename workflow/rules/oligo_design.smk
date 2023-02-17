@@ -65,7 +65,7 @@ rule oligo_design_variants_filterOligos:
         "../envs/filter.yaml"
     input:
         regions="results/oligo_design/{sample}/design_variants.regions.bed.gz",
-        design="results/oligo_design/{sample}/design_variants.fa",
+        design="results/oligo_design/{sample}/design_regions.adapters.fa",
         variant_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
         region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
@@ -127,7 +127,7 @@ rule oligo_design_variants_filter_seqs:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
-        seqs="results/oligo_design/{sample}/design_variants.fa",
+        seqs="results/oligo_design/{sample}/design_regions.adapters.fa",
     output:
         seqs="results/oligo_design/{sample}/design_variants_filtered.design.fa",
     log:
@@ -225,7 +225,7 @@ rule oligo_design_regions_filterOligos:
         "../envs/filter.yaml"
     input:
         regions=lambda wc: datasets.loc[wc.sample, "bed_file"],
-        design="results/oligo_design/{sample}/design_regions.fa",
+        design="results/oligo_design/{sample}/design_regions.adapters.fa",
         design_map="results/oligo_design/{sample}/design_regions.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
@@ -280,7 +280,7 @@ rule oligo_design_regions_filter_seqs:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_regions_filtered.region_map.tsv.gz",
-        seqs="results/oligo_design/{sample}/design_regions.fa",
+        seqs="results/oligo_design/{sample}/design_regions.adapters.fa",
     output:
         seqs="results/oligo_design/{sample}/design_regions_filtered.design.fa",
     log:
@@ -307,6 +307,7 @@ rule oligo_design_seq_getsequenceMap:
         design=lambda wc: datasets.loc[wc.sample, "fasta_file"],
     output:
         design_map="results/oligo_design/{sample}/design_sequences.sequence_map.tsv.gz",
+        fasta="results/oligo_design/{sample}/design_sequences.fa",
     params:
         region_size=config["oligo_length"],
     log:
@@ -322,7 +323,46 @@ rule oligo_design_seq_getsequenceMap:
             echo -e "ID";
             cat {input.design} | sed 's/\\r//' | egrep "^>" | sed 's/^>//';
         ) | \
-        gzip -c > {output} 2> {log} 
+        gzip -c > {output.design_map} 2> {log};
+
+        cp {input} {output.fasta};
+        """
+
+
+rule oligo_design_add_adapters:
+    """
+    Add adapters to sequences.
+    """
+    conda:
+        "../envs/default.yaml"
+    input:
+        "results/oligo_design/{sample}/{design_type}.fa",
+    output:
+        "results/final_design/{sample}/{design_type}.adapters.fa",
+    log:
+        "logs/oligo_design/add_adapters.{sample}.log",
+    params:
+        left=config["oligo_design"]["adapters"]["left"],
+        right=config["oligo_design"]["adapters"]["right"],
+    shell:
+        """
+        awk 'BEGIN{{
+            seq="";header=""
+        }}{{
+            if ($0 ~ /^>/) {{
+                if (seq != "") {{
+                    print header;
+                    print "{params.left}"seq"{params.right}";
+                }}
+                header=$0;
+                seq="";
+            }} else {{
+                seq=seq+toupper($1);
+            }}
+        }}END{{
+            print header;
+            print "{params.left}"seq"{params.right}";
+        }}' {input} > {output} 2> {log}
         """
 
 
@@ -335,7 +375,7 @@ rule oligo_design_seq_filterOligos:
     conda:
         "../envs/filter.yaml"
     input:
-        design=lambda wc: datasets.loc[wc.sample, "fasta_file"],
+        design="results/final_design/{sample}/design_sequences.adapters.fa",
         design_map="results/oligo_design/{sample}/design_sequences.sequence_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
         tss=getReference("TSS_pos.bed.gz"),
