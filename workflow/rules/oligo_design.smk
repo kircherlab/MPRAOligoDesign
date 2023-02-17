@@ -340,7 +340,7 @@ rule oligo_design_add_adapters:
     output:
         "results/final_design/{sample}/{design_type}.adapters.fa",
     log:
-        "logs/oligo_design/add_adapters.{sample}.log",
+        "logs/oligo_design/add_adapters.{sample}.{design_type}.log",
     params:
         left=config["oligo_design"]["adapters"]["left"],
         right=config["oligo_design"]["adapters"]["right"],
@@ -357,7 +357,7 @@ rule oligo_design_add_adapters:
                 header=$0;
                 seq="";
             }} else {{
-                seq=seq+toupper($1);
+                seq=seq toupper($1);
             }}
         }}END{{
             print header;
