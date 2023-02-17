@@ -338,7 +338,7 @@ rule oligo_design_add_adapters:
     input:
         "results/oligo_design/{sample}/{design_type}.fa",
     output:
-        "results/final_design/{sample}/{design_type}.adapters.fa",
+        "results/oligo_design/{sample}/{design_type}.adapters.fa",
     log:
         "logs/oligo_design/add_adapters.{sample}.{design_type}.log",
     params:
