@@ -76,9 +76,24 @@ rule final_design_add_adapters:
         sample=lambda wc: wc.sample,
     shell:
         """
-        sed -e '/^>/! s/^/{params.left}/' -e '/^>/!  s/$/{params.right}/' {input} | \
-        sed -e '/^>/  s/^>/>{params.sample}:/' | bgzip -c > \
-        {output} 2> {log}
+        awk 'BEGIN{{
+            seq="";header=""
+        }}{{
+            if ($0 ~ /^>/) {{
+                if (seq != "") {{
+                    print header;
+                    print "{params.left}"seq"{params.right}";
+                }}
+                header="{params.sample}:"substr($0,2);
+                seq="";
+            }} else {{
+                seq+=toupper($1);
+            }}
+        }}END{{
+            print header;
+            print "{params.left}"seq"{params.right}";
+        }}' {input} | \ 
+        bgzip -c > {output} 2> {log}
         """
 
 
