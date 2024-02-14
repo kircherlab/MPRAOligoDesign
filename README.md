@@ -4,14 +4,14 @@
 ![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/mpraoligodesign/badge/?version=latest)](https://mpraoligodesign.readthedocs.io/en/latest/?badge=latest)
 
-Workflow to gerenate an oligo design for an MPRA experiments. It has mltiple ways to generate sequences:
+Workflow to generate an oligo design for MPRA experiments. It has multiple ways to generate sequences:
 
 1. Variants (vcf) + regions (bed)
 2. Variants (vcf)
 3. Regions (bed)
 4. Sequnces (fasta)
 
-All 4 strategies can be combined latzer into one final design files. This allows you to put controlls as well as your deisgn in one workflow.
+All 4 strategies can be combined later into one final design files. This allows you to put controls as well as your design in one workflow.
 
 When sequences are generated it filters them with multiple check:
 1. Homopolymer size (for all)
@@ -38,7 +38,7 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 
 ### Step 2: Configure workflow
 
-Configure the workflow according to your needs is via a config file. An example conmfig can be found in the `config/` folder. Adjust `config_test_samples.yml` to configure the workflow execution. For each input strategy you use (see above) You have to sepcify tab separated files with the (unique) sample id and where the input files are located in your file system. You can use relative or full paths (full paths recommended). relative means relative to your excecution folder.
+Configure the workflow according to your needs is via a config file. An example conmfig can be found in the `config/` folder. Adjust `config_test_samples.yml` to configure the workflow execution. For each input strategy you use (see above) You have to specify tab separated files with the (unique) sample id and where the input files are located in your file system. You can use relative or full paths (full paths recommended). relative means relative to your execution folder.
 
 ### Step 3: Install Snakemake
 
@@ -78,7 +78,7 @@ See the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/exe
 
 ### Step 5: Investigate results
 
-After successful execution there should be a `results` folder. Under `results/final_design/` all sample ids are listed with the corresponding design file `results/final_design/<sample_id>/design.fa.gz`. A combied design file can be found here: `results/final_design/design.fa.gz`
+After successful execution there should be a `results` folder. Under `results/final_design/` all sample ids are listed with the corresponding design file `results/final_design/<sample_id>/design.fa.gz`. A combined design file can be found here: `results/final_design/design.fa.gz`
 
 If you want to get an overview why several sequences/regions are removed you can check the file `results/oligo_design/<sample_id>/design_<variants/sequences/regions>_filter.log`. `variants/sequences/regions` depends on the input you used.
 
@@ -117,7 +117,7 @@ Test cases are in the subfolder `.test`. They are automatically executed via con
 
 
 
-# Run olig check scripts
+# Run oligo check scripts
 
 
 ## Create reference folder
@@ -178,7 +178,7 @@ for i in *.vcf.fix.gz; do zcat $i | python varsToFrag.py | bgzip -c > ${i/.vcf.f
 ```
 
 ### Design from pre-defined sequences with including barcodes in synthesis
-- Note their is some deactivated tiling code based on BED files in this source code file
+- Note there is some deactivated tiling code based on BED files in this source code file
 - Misses filter for TSS or CTCF, but probably easily added using similar code as for simple repeats
 - Recently, we would no longer design with barcodes, but add barcodes through amplification; here only the outer sequences are added to the design 
 
