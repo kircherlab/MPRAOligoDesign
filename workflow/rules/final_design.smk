@@ -156,12 +156,17 @@ rule final_design_combine_variants:
         ),
     output:
         "results/final_design/variants.vcf.gz",
+    params:
+        num=len(getVariantDatasets()),
     log:
         "logs/final_design/combine_variants.log",
     shell:
         """
-        bcftools merge {input.variants} | \
-        bgzip -c > {output} 2> {log};
+        if [ {params.num} -eq 1 ]; then
+            zcat {input.variants} | bgzip -c > {output}
+        else
+            bcftools merge {input.variants} | bgzip -c > {output}
+        fi 2> {log};
         """
 
 

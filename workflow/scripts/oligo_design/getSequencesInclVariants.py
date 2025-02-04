@@ -81,7 +81,7 @@ def cli(input_region_file, input_variant_file, reference_file, output_variant_fi
     vcf_header.add_info_line({"ID": "ALT_ID", "Number": ".", "Type": "String", "Description": "Corresponding alt ID(s)"})
     vcf_header.add_info_line({"ID": "REF_ID", "Number": ".", "Type": "String", "Description": "Corresponding REF ID(s)"})
     vcf_writer = vcfpy.Writer.from_path(output_variant_file, vcf_header)
-    df = pd.read_csv(input_region_file, header=None, sep="\t")
+    df = pd.read_csv(input_region_file, header=None, sep="\t", comment="#")
     df.rename({0: "Chromosome", 1: "Start", 2: "End", 3: "Name", 4: "Score", 5: "Strand"}, axis=1, inplace=True)
     regions = pr.PyRanges(df)
     reference = Fasta(reference_file)

@@ -82,9 +82,11 @@ rule tiling_strategy_twoTiles:
         "results/tiling/{sample}/strategies/regions.twoTiles.processed.bed.gz",
     params:
         oligo_length=config["oligo_length"],
-        extension=config["tiling"]["variant_edge_exclusion"]
-        if config["tiling"]["strategies"]["two_tiles"]["include_variant_edge"]
-        else 0,
+        extension=(
+            config["tiling"]["variant_edge_exclusion"]
+            if config["tiling"]["strategies"]["two_tiles"]["include_variant_edge"]
+            else 0
+        ),
     log:
         "results/logs/tiling/strategy_twoTiles.{sample}.log",
     shell:

@@ -40,4 +40,4 @@ rule all:
             "results/final_design/{sample}/regions.bed.gz",
             sample=getRegionDatasets(),
         ),
-        getFinalOutput()
+        getFinalOutput(),

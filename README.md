@@ -58,20 +58,20 @@ You can run the workflow in any directory. You just need read access to the clon
 
 Test your configuration by performing a dry-run via
 
-    snakemake --use-conda -n --configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
+    snakemake --sdm conda -n --configfile config.yaml --snakefile <path/to/cloned/workflow>/workflow/Snakefile
 
 Execute the workflow locally via
 
-    snakemake --use-conda --cores $N -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
+    snakemake --sdm conda --executor slurm --cores $N -configfile config.yaml --snakefile <path/to/cloned/workflow>/workflow/Snakefile
 
 using `$N` cores or run it in a cluster environment via
 
-    snakemake --use-conda --cluster qsub --jobs 100 -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
+    snakemake --sdm conda --executor slurm --jobs 100 -configfile config.yaml --snakefile <path/to/cloned/workflow>/workflow/Snakefile
 
 
 If you not only want to fix the software stack but also the underlying OS, use
 
-    snakemake --use-conda --use-singularity -configfile config.yaml --snakefile <path/tpo/cloned/workflow>/workflow/Snakefile
+    snakemake --sdm conda apptainer -configfile config.yaml --snakefile <path/to/cloned/workflow>/workflow/Snakefile
 
 in combination with any of the modes above.
 See the [Snakemake documentation](https://snakemake.readthedocs.io/en/stable/executable.html) for further details.

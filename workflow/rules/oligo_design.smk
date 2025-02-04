@@ -52,9 +52,11 @@ rule oligo_design_getSequencesInclVariants:
     conda:
         "../envs/oligo_design.yaml"
     input:
-        regions=lambda wc: "results/tiling/{sample}/regions.tiles.bed.gz"
-        if isVariantsAndRegionsSample(wc.sample)
-        else "results/centering/{sample}/regions.centered.bed.gz",
+        regions=lambda wc: (
+            "results/tiling/{sample}/regions.tiles.bed.gz"
+            if isVariantsAndRegionsSample(wc.sample)
+            else "results/centering/{sample}/regions.centered.bed.gz"
+        ),
         variants=lambda wc: datasets.loc[wc.sample]["vcf_file"],
         ref=config["reference"]["fasta"],
         genome_file=config["reference"]["genome"],
@@ -69,12 +71,16 @@ rule oligo_design_getSequencesInclVariants:
         design_region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
     params:
         variant_edge_exclusion=config["tiling"]["variant_edge_exclusion"],
-        use_most_centered_region="--use-most-centered-region-for-variant"
-        if config["oligo_design"]["variants"]["use_most_centered_region"]
-        else "--use-all-regions-for-variant",
-        remove_regions_without_variants="--remove-regions-without-variants"
-        if config["oligo_design"]["variants"]["remove_unused_regions"]
-        else "--keep-regions-without-variants",
+        use_most_centered_region=(
+            "--use-most-centered-region-for-variant"
+            if config["oligo_design"]["variants"]["use_most_centered_region"]
+            else "--use-all-regions-for-variant"
+        ),
+        remove_regions_without_variants=(
+            "--remove-regions-without-variants"
+            if config["oligo_design"]["variants"]["remove_unused_regions"]
+            else "--keep-regions-without-variants"
+        ),
     log:
         "logs/oligo_design/getSequencesInclVariants.{sample}.log",
     shell:
@@ -108,9 +114,13 @@ rule oligo_design_variants_filterOligos:
         variant_map="results/oligo_design/{sample}/design_variants.variant_region_map.tsv.gz",
         region_map="results/oligo_design/{sample}/design_variants.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
+        simple_repeats_idx=getReference("simpleRepeat.bed.gz.tbi"),
         tss=getReference("TSS_pos.bed.gz"),
+        tss_idx=getReference("TSS_pos.bed.gz.tbi"),
         ctcf=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz"),
+        ctcf_idx=getReference("CTCF-MA0139-1_intCTCF_fp25.hg38.bed.gz.tbi"),
         script=getScript("oligo_design/filterOligos.py"),
+        lib=getScript("oligo_design/filter.py"),
     output:
         out_variant_map="results/oligo_design/{sample}/design_variants_filtered.variant_region_map.tsv.gz",
         out_region_map="results/oligo_design/{sample}/design_variants_filtered.region_map.tsv.gz",
@@ -118,9 +128,11 @@ rule oligo_design_variants_filterOligos:
     params:
         repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"],
         max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
-        remove_regions_without_variants="--remove-regions-without-variants"
-        if config["oligo_design"]["variants"]["remove_unused_regions"]
-        else "--keep-regions-without-variants",
+        remove_regions_without_variants=(
+            "--remove-regions-without-variants"
+            if config["oligo_design"]["variants"]["remove_unused_regions"]
+            else "--keep-regions-without-variants"
+        ),
     log:
         "logs/oligo_design/filterOligos.{sample}.log",
     shell:

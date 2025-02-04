@@ -1,20 +1,18 @@
 ################################
 #### Global functions       ####
 ################################
-from snakemake.workflow import srcdir
-
-SCRIPTS_DIR = srcdir("../scripts")
+SCRIPTS_DIR = "../scripts"
 
 
 def getScript(name):
-    return "%s/%s" % (SCRIPTS_DIR, name)
+    return workflow.source_path("%s/%s" % (SCRIPTS_DIR, name))
 
 
-REFERENCE_DIR = srcdir("../../reference")
+REFERENCE_DIR = "../../reference"
 
 
 def getReference(name):
-    return "%s/%s" % (REFERENCE_DIR, name)
+    return workflow.source_path("%s/%s" % (REFERENCE_DIR, name))
 
 
 from snakemake.utils import validate
@@ -67,9 +65,7 @@ def isVariantsAndRegionsSample(sample):
     """
     return (
         "vcf_file" in datasets.columns and pd.notnull(datasets.loc[sample, "vcf_file"])
-    ) and (
-        "bed_file" in datasets.columns and pd.notnull(datasets.loc[sample, "bed_file"])
-    )
+    ) and ("bed_file" in datasets.columns and pd.notnull(datasets.loc[sample, "bed_file"]))
 
 
 def isVariantsOnlySample(sample):
