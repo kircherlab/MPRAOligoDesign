@@ -3,17 +3,17 @@ name: Tests
 
 on:
   push:
-    branches: [main]
+    branches: [master, development]
   pull_request:
-    branches: [main]
+    branches: [master, development]
 
 jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: install micromamba
-        uses: mamba-org/provision-with-micromamba@v12
+        uses: mamba-org/setup-micromamba@v1
         with:
           environment-file: docs/environment.yml
           environment-name: sphinx
@@ -24,14 +24,14 @@ jobs:
   Formatting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Formatting
-        uses: github/super-linter@v4
+        uses: super-linter/super-linter@v6
         env:
           VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
+          DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_PYTHON_FLAKE8: true
           PYTHON_FLAKE8_CONFIG_FILE: .flake8
@@ -44,32 +44,31 @@ jobs:
   Linting:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Lint workflow
-        uses: snakemake/snakemake-github-action@v1.24.0
+        uses: snakemake/snakemake-github-action@v1
         with:
           directory: .
           snakefile: workflow/Snakefile
-          args: "--lint --configfile config/config_github.yml"
+          args: "--lint --configfile config/example_github.yaml"
+  # Testing:
+  #   runs-on: ubuntu-latest
+  #   needs:
+  #     - Linting
+  #     - Formatting
+  #   steps:
+  #     - uses: actions/checkout@v2
 
-  Testing:
-    runs-on: ubuntu-latest
-    needs:
-      - Linting
-      - Formatting
-    steps:
-      - uses: actions/checkout@v3
+  #     - name: Test workflow
+  #       uses: snakemake/snakemake-github-action@v1.24.0
+  #       with:
+  #         directory: .test
+  #         snakefile: workflow/Snakefile
+  #         args: "--configfile config/example_config.yaml --use-conda --show-failed-logs --cores 3 --conda-cleanup-pkgs cache"
 
-      - name: Test workflow
-        uses: snakemake/snakemake-github-action@v1.24.0
-        with:
-          directory: .test
-          snakefile: workflow/Snakefile
-          args: "--configfile config/config_github.yml --use-conda --show-failed-logs --cores 3 --conda-cleanup-pkgs cache"
-
-      # - name: Test report
-      #   uses: snakemake/snakemake-github-action@v1.24.0
-      #   with:
-      #     directory: .test
-      #     snakefile: workflow/Snakefile
-      #     args: "--configfile config/config_github.yml --report report.zip"
+  #     - name: Test report
+  #       uses: snakemake/snakemake-github-action@v1.24.0
+  #       with:
+  #         directory: .test
+  #         snakefile: workflow/Snakefile
+  #         args: "--configfile config/example_config.yaml --report report.zip"

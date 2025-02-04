@@ -2,7 +2,7 @@ name: filter
 channels:
   - conda-forge
   - bioconda
-  - defaults
+  - nodefaults
 dependencies:
   - pysam
   - pandas

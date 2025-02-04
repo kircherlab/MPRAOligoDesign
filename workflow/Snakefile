@@ -13,7 +13,7 @@ container: "docker://continuumio/miniconda3"
 
 from snakemake.utils import min_version
 
-min_version("7.20.0")
+min_version("8.27.1")
 
 
 include: "rules/common.smk"

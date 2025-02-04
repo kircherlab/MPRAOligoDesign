@@ -17,3 +17,4 @@ Contributors
 - Martin Kircher
 - Mohan Dash
 - Pia Keukeleire
+- Kilian Salomon

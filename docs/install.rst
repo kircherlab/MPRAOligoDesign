@@ -16,13 +16,13 @@ Required packages
 
 .. code-block:: bash
 
-  	conda (mamba) 4.6 or above
+  	conda >24.7.1
 
 Download here: https://docs.conda.io/en/latest/miniconda.html
 
 .. code-block:: bash
 
-    snakemake 7.20.0 or above
+    snakemake 8.27.1 or above
 
 Download here: https://snakemake.readthedocs.io/
 
