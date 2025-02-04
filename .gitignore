@@ -21,6 +21,8 @@ analysis/*
 !.flake8
 !LICENSE
 !README.md
+!.release-please-manifest.json
+!version.txt
 !MPRAOligoDesign.drawio
 !MPRAOligoDesign.png
 !MPRAOligoDesign.pdf
