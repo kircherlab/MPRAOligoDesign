@@ -130,11 +130,11 @@ def cli(
     )
 
     print(
-        """Failed sequences: 
-    %d due to homopolymers 
-    %d due to simple repeats 
-    %d due to TSS site overlap 
-    %d due to CTCF site overlap 
+        """Failed sequences:
+    %d due to homopolymers
+    %d due to simple repeats
+    %d due to TSS site overlap
+    %d due to CTCF site overlap
     %d due to EcoRI or SbfI restriction site overlap"""
         % (
             fail_reasons.get("hompol", 0),
@@ -147,12 +147,14 @@ def cli(
     print("Total failed: %d" % (removed))
     print("Total passed sequences: %d" % (total - removed))
 
+def flatten_list(list_of_lists):
+    return [item for sublist in list_of_lists for item in sublist]
 
 def write_output(
     failed,
     variant_map_file,
     map_file,
-    remove_unused,
+    remove_regions_without_variants,
     variant_map_out_file,
     map_out_file,
 ):
@@ -173,14 +175,20 @@ def write_output(
         )
 
     if "seqs" in failed:
-        map = map.drop(map[map["ID"].isin(failed["seqs"])].index)
+        map = map.drop(map[map["ID"].isin(failed["seqs"])].index).copy()
+
         variant_map = variant_map.drop(
             variant_map[variant_map["REF_ID"].isin(failed["seqs"])].index
         )
         variant_map = variant_map.drop(
             variant_map[variant_map["ALT_ID"].isin(failed["seqs"])].index
         )
-        if remove_unused:
+        # remove alt ids if the associated ref id fails:
+        ref_alt_dict = variant_map.groupby('REF_ID')['ALT_ID'].apply(list).to_dict()
+        failed_ref_alt_seqs = flatten_list([ref_alt_dict[name] for name in failed["seqs"] if name in ref_alt_dict.keys()])
+        map = map.drop(map[map["ID"].isin(failed_ref_alt_seqs)].index).copy()
+
+        if remove_regions_without_variants:
             map = map.drop(
                 map[
                     ~map["ID"].isin(
