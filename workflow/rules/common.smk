@@ -5,14 +5,18 @@ SCRIPTS_DIR = "../scripts"
 
 
 def getScript(name):
-    return workflow.source_path("%s/%s" % (SCRIPTS_DIR, name))
+    # Construct the path to the scripts directory
+    scripts_dir = os.path.abspath(os.path.join(workflow.basedir, 'scripts'))
+    return os.path.join(scripts_dir, name)
 
 
 REFERENCE_DIR = "../../reference"
 
 
 def getReference(name):
-    return workflow.source_path("%s/%s" % (REFERENCE_DIR, name))
+    # Construct the path to the reference directory
+    reference_dir = os.path.abspath(os.path.join(workflow.basedir, '../reference'))
+    return os.path.join(reference_dir, name)
 
 
 from snakemake.utils import validate
