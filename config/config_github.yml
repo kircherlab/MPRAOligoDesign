@@ -1,9 +1,12 @@
+---
 reference:
   genome: /github/workspace/resources/reference/hg38.chrom.sizes
   fasta: /github/workspace/resources/reference/hg38_test.fa
-datasets: 
-  variants_regions: /github/workspace/config/test_datasets_variants_regions_github.tsv
-  regions_only: /github/workspace/config/test_datasets_regions_only_github.tsv
+datasets:
+  variants_regions:
+    - /github/workspace/config/test_datasets_variants_regions_github.tsv
+  regions_only:
+    - /github/workspace/config/test_datasets_regions_only_github.tsv
 
 oligo_length: 150
 
@@ -11,6 +14,8 @@ tiling:
   remove_edge_variants: true
   min_overlap: 50
   strategies:
+    centering:
+      max: 250
     two_tiles:
       max: 250 # 170 wil be used because of 2*150 -2 *50 -2*15
       include_variant_edge: true
