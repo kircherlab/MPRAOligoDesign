@@ -3,6 +3,7 @@
 import pysam
 import pandas as pd
 import click
+import gzip
 from filter import seqs_filter, regions_filter
 
 
@@ -12,7 +13,7 @@ from filter import seqs_filter, regions_filter
     "seqs_file",
     required=False,
     type=click.Path(exists=True, readable=True),
-    help="File containing the designed oligos ",
+    help="File containing the designed oligos",
 )
 @click.option(
     "--regions",
@@ -90,6 +91,42 @@ from filter import seqs_filter, regions_filter
     type=click.Path(writable=True),
     help="Output file of filtered variant to region to sequence map",
 )
+# TODO: accept output files for each of the filters (optional but check if the paths are valid)
+@click.option(
+    "--output-failed-ctcf-bed",
+    "failed_ctcf_bed",
+    required=False,
+    type=click.Path(writable=True),
+    help="Output file of failed CTCF sites",
+)
+@click.option(
+    "--output-failed-homopolymer-bed",
+    "failed_homopolymer_bed",
+    required=False,
+    type=click.Path(writable=True),
+    help="Output file of failed homopolymer sequences",
+)
+@click.option(
+    "--output-failed-simpleRepeats-bed",
+    "failed_simpleRepeats_bed",
+    required=False,
+    type=click.Path(writable=True),
+    help="Output file of failed simple repeats",
+)
+@click.option(
+    "--output-failed-TSS-bed",
+    "failed_TSS_bed",
+    required=False,
+    type=click.Path(writable=True),
+    help="Output file of failed TSS sites",
+)
+@click.option(
+    "--output-failed-restriction-site-bed",
+    "failed_restriction_site_bed",
+    required=False,
+    type=click.Path(writable=True),
+    help="Output file of sequences with a restriction site",
+)
 def cli(
     seqs_file,
     regions_file,
@@ -103,6 +140,11 @@ def cli(
     ctcf_motif_file,
     variant_map_out,
     map_out,
+    failed_ctcf_bed,
+    failed_homopolymer_bed,
+    failed_simpleRepeats_bed,
+    failed_TSS_bed,
+    failed_restriction_site_bed,
 ):
     repeatIndex = pysam.Tabixfile(simple_repeats_file)
     TSSIndex = pysam.Tabixfile(tss_pos_file)
@@ -112,13 +154,45 @@ def cli(
     failed = {}
 
     if regions_file:
-        failed["regions"], fail_reasons = regions_filter(
+        failed_tuples, fail_reasons = regions_filter(
             regions_file, repeatIndex, TSSIndex, CTCFIndex, repeat
         )
+        failed["regions"] = [x[0] for x in failed_tuples]
+        # write failed regions to bed files
+        if failed_ctcf_bed:
+            fail_reason = "CTCF"
+            write_failed_regions(failed_tuples, failed_ctcf_bed, regions_file, fail_reason)
+
+        if failed_simpleRepeats_bed:
+            fail_reason = "repeats"
+            write_failed_regions(failed_tuples, failed_simpleRepeats_bed, regions_file, fail_reason)
+
+        if failed_TSS_bed:
+            fail_reason = "TSS"
+            write_failed_regions(failed_tuples, failed_TSS_bed, regions_file, fail_reason)
+
 
     if seqs_file:
-        failed["seqs"], reasons = seqs_filter(seqs_file, maxHomLength)
+        failed_tuples, reasons = seqs_filter(seqs_file, maxHomLength)
         fail_reasons |= reasons
+        failed["seqs"] = [x[0] for x in failed_tuples]
+        # write failed sequences to bed files
+        if failed_homopolymer_bed:
+            reason = "homopolymer"
+            write_failed_sequence_regions(failed_tuples,
+                                          region_sequence_map_file_path=map_in,
+                                          bed_file_path=failed_homopolymer_bed,
+                                          regions_file=regions_file, fail_reason=reason,
+                                          ID_col_name="ID", region_col_name="Region")
+
+        # write failed sequences to bed files
+        if failed_restriction_site_bed:
+            reason = "restriction"
+            write_failed_sequence_regions(failed_tuples,
+                                          region_sequence_map_file_path=map_in,
+                                          bed_file_path=failed_restriction_site_bed,
+                                          regions_file=regions_file, fail_reason=reason,
+                                          ID_col_name="ID", region_col_name="Region")
 
     total, removed = write_output(
         failed,
@@ -146,6 +220,59 @@ def cli(
     )
     print("Total failed: %d" % (removed))
     print("Total passed sequences: %d" % (total - removed))
+
+
+def write_failed_regions(failed_tuples, bed_file_path, regions_file, fail_reason):
+    """Write the failed region bed file for the given fail reason"""
+    # get the failed regions
+    failed_region_ids = [x[0] for x in failed_tuples if x[1] == fail_reason]
+    if len(failed_region_ids) == 0: # if no regions failed, nothing needs to be written
+        return True
+
+    if bed_file_path is None:
+        raise ValueError("No output file path given")
+
+    with open(bed_file_path, "w") as f:
+        regions = gzip.open(regions_file, 'rt')
+        for region in regions:
+            region_split = region.strip().split("\t")
+            rchrom, rstart, rend, rid = region_split[0:4]
+            if rid in failed_region_ids:
+                f.write(region)
+
+    if bed_file_path.endswith(".gz"):
+        written_regions = pd.read_csv(bed_file_path, sep="\t", compression=None)
+        written_regions.to_csv(bed_file_path, sep="\t", index=False)
+    return True
+
+
+def write_failed_sequence_regions(failed_tuples, region_sequence_map_file_path, bed_file_path, regions_file, fail_reason, ID_col_name="ID", region_col_name="Region"):
+    """Write the failed regions of sequences with homopolymers or restriction sites to a bed file"""
+    map_df = pd.read_csv(region_sequence_map_file_path, sep="\t")
+    failed_id = [x[0] for x in failed_tuples if x[1] == fail_reason]
+    failed_map = map_df.loc[map_df[ID_col_name].isin(failed_id)].copy()
+    failed_region_ids = failed_map[region_col_name].unique()
+    if len(failed_region_ids) == 0:
+        return True
+
+    if bed_file_path is None:
+        raise ValueError("No output file path given")
+
+
+    with open(bed_file_path, "w") as f:
+        # get all regions that failed and write them from the regions file
+        regions = gzip.open(regions_file, 'rt')
+        for region in regions:
+            region_split = region.strip().split("\t")
+            rchrom, rstart, rend, rid = region_split[0:4]
+            if rid in failed_region_ids:
+                f.write(region)
+
+    if bed_file_path.endswith(".gz"):
+        written_regions = pd.read_csv(bed_file_path, sep="\t", compression=None)
+        written_regions.to_csv(bed_file_path, sep="\t", index=False)
+    return True
+
 
 def flatten_list(list_of_lists):
     return [item for sublist in list_of_lists for item in sublist]

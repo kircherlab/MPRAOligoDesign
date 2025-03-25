@@ -46,6 +46,7 @@ def Site2RegEx(seq):
 
 
 def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
+    """Will return a list of tuple of the failed regions and the reasons for failing (id, reason)"""
     # , names=["chrom", "start", "end", "id", "qfilter", "strand"], sep="\t", skiprows = 1)
     regions = gzip.open(regions_file, 'rt')
     failed_list = []
@@ -54,7 +55,6 @@ def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
                     "CTCF": 0}
 
     for region in regions:
-        failed = False
         region_split = region.strip().split("\t")
         rchrom, rstart, rend, rid = region_split[0:4]
         rstart, rend = int(rstart), int(rend)
@@ -63,27 +63,25 @@ def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
             fields = line.split("\t")
             tstart, tend = int(fields[1]), int(fields[2])
             if (min(tend, rend)-max(tstart, rstart))/float(rend-rstart) > max_repeats:
-                failed = True
                 fail_reasons["repeats"] += 1
+                failed_list.append((rid, "repeats"))
                 break
 
         # filter TSS
         if any(TSSIndex.fetch(rchrom, rstart, rend)):
-            failed = True
             fail_reasons["TSS"] += 1
+            failed_list.append((rid, "TSS"))
+
 
         # filter CTCF
         if any(CTCFIndex.fetch(rchrom, rstart, rend)):
-            failed = True
+            failed_list.append((rid, "CTCF"))
             fail_reasons["CTCF"] += 1
-
-        if failed:
-            failed_list.append(rid)
 
     return failed_list, fail_reasons
 
 
-def seqs_filter(seqs, max_hom):
+def seqs_filter(seqs, max_hom, output_bed=None):
     names = {}
     sites = []
     names["CCTGCA^GG"] = "SbfI"
@@ -104,17 +102,14 @@ def seqs_filter(seqs, max_hom):
     fasta = fastaReader(seqfile)
     for cid, seq in fasta:
         if (max_hom == None) or (nucleotideruns(seq) <= max_hom):
-            foundRestrictionSite = False
             for ind, (site, pos) in enumerate(restriction_sites):
                 if any(site.finditer(seq)):
-                    foundRestrictionSite = True
+                    fail_reasons["restrictions"] += 1
+                    failed_list.append((cid, "restriction"))
                     break
-            if foundRestrictionSite:
-                fail_reasons["restrictions"] += 1
-                failed_list.append(cid)
         else:
             fail_reasons["hompol"] += 1
-            failed_list.append(cid)
+            failed_list.append((cid, "homopolymer"))
 
     seqfile.close()
     return failed_list, fail_reasons

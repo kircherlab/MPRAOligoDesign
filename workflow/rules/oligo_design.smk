@@ -44,9 +44,9 @@ rule oligo_design_add_adapters:
 
 rule oligo_design_getSequencesInclVariants:
     """
-    Rule to map variants to designed regions, 
-    filter not matched variants, 
-    removes not used regions (optional), 
+    Rule to map variants to designed regions,
+    filter not matched variants,
+    removes not used regions (optional),
     and generate ref/alt sequences
     """
     conda:
@@ -102,9 +102,9 @@ rule oligo_design_getSequencesInclVariants:
 
 rule oligo_design_variants_filterOligos:
     """
-    Remove oligos overlapping with TSS, CTCF, 
-    restriction sites and simple repeats, 
-    as well as oligos with too many homopolymers. 
+    Remove oligos overlapping with TSS, CTCF,
+    restriction sites and simple repeats,
+    as well as oligos with too many homopolymers.
     """
     conda:
         "../envs/filter.yaml"
@@ -262,15 +262,15 @@ rule oligo_design_regions_getRegionMap:
         (
             echo -e "Region\\tID";
             paste <(zcat {input.regions} | cut -f 4) <(cat {input.design} | egrep "^>" | sed 's/^>//')
-        ) | gzip -c > {output} 2> {log} 
+        ) | gzip -c > {output} 2> {log}
         """
 
 
 rule oligo_design_regions_filterOligos:
     """
-    Remove oligos overlapping with TSS, CTCF, 
-    restriction sites and simple repeats, 
-    as well as oligos with too many homopolymers. 
+    Remove oligos overlapping with TSS, CTCF,
+    restriction sites and simple repeats,
+    as well as oligos with too many homopolymers.
     """
     conda:
         "../envs/filter.yaml"
@@ -288,6 +288,12 @@ rule oligo_design_regions_filterOligos:
     params:
         repeats=config["oligo_design"]["filtering"]["max_simple_repeat_fraction"],
         max_hom=config["oligo_design"]["filtering"]["max_homopolymer_length"],
+        # are defined here because these files are only written if there are sequences to filter
+        simple_repeats_output="results/oligo_design/{sample}/design_regions_failed.simple_repeats.bed.gz",
+        homopolymers_output="results/oligo_design/{sample}/design_regions_failed.homopolymers.bed.gz",
+        tss_output="results/oligo_design/{sample}/design_regions_failed.tss.bed.gz",
+        ctcf_output="results/oligo_design/{sample}/design_regions_failed.ctcf.bed.gz",
+        restriction_site_output="results/oligo_design/{sample}/design_regions_failed.restriction_site.bed.gz",
     log:
         "logs/oligo_design/regions_filterOligos.{sample}.log",
     shell:
@@ -302,6 +308,11 @@ rule oligo_design_regions_filterOligos:
         --ctcf-motifs {input.ctcf} \
         --simple-repeats {input.simple_repeats} \
         --output-map {output.out_map} \
+        --output-failed-ctcf-bed {params.ctcf_output} \
+        --output-failed-homopolymer-bed {params.homopolymers_output} \
+        --output-failed-simpleRepeats-bed {params.simple_repeats_output} \
+        --output-failed-TSS-bed {params.tss_output} \
+        --output-failed-restriction-site-bed {params.restriction_site_output} \
         > {output.statistic} 2> {log}
         """
 
@@ -382,9 +393,9 @@ rule oligo_design_seq_getsequenceMap:
 
 rule oligo_design_seq_filterOligos:
     """
-    Remove oligos overlapping with TSS, CTCF, 
-    restriction sites and simple repeats, 
-    as well as oligos with too many homopolymers. 
+    Remove oligos overlapping with TSS, CTCF,
+    restriction sites and simple repeats,
+    as well as oligos with too many homopolymers.
     """
     conda:
         "../envs/filter.yaml"
