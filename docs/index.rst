@@ -135,6 +135,7 @@ Indices and tables
     :maxdepth: 1
     :hidden:
 
+    overview
     quickstart
     install
     config
