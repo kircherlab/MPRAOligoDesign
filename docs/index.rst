@@ -4,11 +4,41 @@
 MPRAOligoDesign's documentation
 ====================================
 
+.. image:: https://img.shields.io/badge/GitHub-repository-brightgreen?logo=github
+    :alt: GitHub Repository
+    :target: https://github.com/kircherlab/MPRAOligoDesign
+
+.. image:: https://readthedocs.org/projects/mpraoligodesign/badge/?version=latest
+    :target: https://mpraoligodesign.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. image:: https://zenodo.org/badge/565841201.svg
+    :target: https://doi.org/10.5281/zenodo.18173304
+    :alt: DOI
+
+.. image:: https://img.shields.io/github/license/kircherlab/MPRAOligoDesign
+    :target: https://github.com/kircherlab/MPRAOligoDesign/blob/master/LICENSE
+    :alt: GitHub License
+
+.. image:: https://img.shields.io/github/v/release/kircherlab/MPRAOligoDesign
+    :target: https://github.com/kircherlab/MPRAOligoDesign/releases/latest
+    :alt: GitHub Release
+
 .. image:: https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg
     :target: https://snakemake.bitbucket.io
+    :alt: Snakemake
 
-.. image:: https://img.shields.io/badge/mamba-≥4.6-brightgreen.svg
-    :target: https://docs.conda.io/en/latest/miniconda.html
+.. image:: https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg
+    :target: https://github.com/kircherlab/MPRAOligoDesign/actions/workflows/main.yml
+    :alt: Tests
+
+.. image:: https://img.shields.io/github/issues/kircherlab/MPRAOligoDesign
+    :target: https://github.com/kircherlab/MPRAOligoDesign/issues
+    :alt: GitHub Issues
+
+.. image:: https://img.shields.io/github/issues-pr/kircherlab/MPRAOligoDesign
+    :target: https://github.com/kircherlab/MPRAOligoDesign/pulls
+    :alt: GitHub Pull Requests
 
 
 **Welcome!**
