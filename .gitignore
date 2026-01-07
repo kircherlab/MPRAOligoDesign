@@ -23,6 +23,7 @@ analysis/*
 !README.md
 !.release-please-manifest.json
 !version.txt
+!.readthedocs.yaml
 !MPRAOligoDesign.drawio
 !MPRAOligoDesign.png
 !MPRAOligoDesign.pdf
