@@ -1,12 +1,12 @@
 ---
 reference:
-  genome: /github/workspace/resources/reference/hg38.chrom.sizes
-  fasta: /github/workspace/resources/reference/hg38_test.fa
+  genome: resources/reference/hg38.chrom.sizes
+  fasta: resources/reference/hg38_test.fa
 datasets:
   variants_regions:
-    - /github/workspace/config/test_datasets_variants_regions_github.tsv
+    - config/test_datasets_variants_regions_github.tsv
   regions_only:
-    - /github/workspace/config/test_datasets_regions_only_github.tsv
+    - config/test_datasets_regions_only_github.tsv
 
 oligo_length: 150
 
