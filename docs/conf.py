@@ -45,7 +45,8 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_rtd_theme',
-    'recommonmark'
+    'recommonmark',
+    "myst_parser",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -157,7 +158,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'MPRAOligoDesign', u'MPRAOligoDesign Documentation',
-     author, 'MPRAOligoDesign', 'Workflow to design oligos for MPRA out of regions (and variants)',
+     author, 'MPRAOligoDesign',
+     'Workflow to design oligos for MPRA out of regions (and variants)',
      'miscellaneous'),
 ]
 
