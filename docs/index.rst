@@ -109,7 +109,7 @@ Features
 --------
 
 :--use-conda:
-  This utility uses mamba to efficiently query repositories and query package dependencies.
+  This utility uses conda to efficiently query repositories and query package dependencies.
 :--cores:
   This utility sets the number of cores ($N) to be used by MPRAOligoDesign.
 :--configfile:
