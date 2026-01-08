@@ -23,10 +23,13 @@ project = u'MPRAOligoDesign'
 copyright = u'2022, Max Schubach'
 author = u'Max Schubach'
 
-# The short X.Y version
-version = u'1.0'
-# The full version, including alpha/beta/rc tags
-release = u'1.0'
+
+# Path to version.txt
+version_file = os.path.join(os.path.dirname(__file__), '../version.txt')
+with open(version_file, 'r') as f:
+    release = f.read().strip()
+
+version = '.'.join(release.split('.')[:2])
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,7 +48,6 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_rtd_theme',
-    'recommonmark',
     "myst_parser",
 ]
 
