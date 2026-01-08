@@ -23,10 +23,13 @@ project = u'MPRAOligoDesign'
 copyright = u'2022, Max Schubach'
 author = u'Max Schubach'
 
-# The short X.Y version
-version = u'1.0'
-# The full version, including alpha/beta/rc tags
-release = u'1.0'
+
+# Path to version.txt
+version_file = os.path.join(os.path.dirname(__file__), '../version.txt')
+with open(version_file, 'r') as f:
+    release = f.read().strip()
+
+version = '.'.join(release.split('.')[:2])
 
 
 # -- General configuration ---------------------------------------------------
@@ -45,7 +48,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx_rtd_theme',
-    'recommonmark'
+    "myst_parser",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -55,7 +58,6 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 # source_suffix = ['.rst', '.md']
-source_suffix = ['.rst', '.md']
 
 # The master toctree document.
 master_doc = 'index'
@@ -157,7 +159,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'MPRAOligoDesign', u'MPRAOligoDesign Documentation',
-     author, 'MPRAOligoDesign', 'Workflow to design oligos for MPRA out of regions (and variants)',
+     author, 'MPRAOligoDesign',
+     'Workflow to design oligos for MPRA out of regions (and variants)',
      'miscellaneous'),
 ]
 

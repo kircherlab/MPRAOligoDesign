@@ -4,5 +4,5 @@
 History
 =======
 
-.. literalinclude:: ../CHANGELOG.md
-    :language: text
+.. include:: ../CHANGELOG.md
+    :parser: myst_parser.sphinx_
