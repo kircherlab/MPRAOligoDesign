@@ -15,7 +15,7 @@ tiling:
   min_overlap: 50
   strategies:
     centering:
-      max: 250
+      max: 150
     two_tiles:
       max: 250 # 170 wil be used because of 2*150 -2 *50 -2*15
       include_variant_edge: true

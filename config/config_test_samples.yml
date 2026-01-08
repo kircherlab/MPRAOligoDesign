@@ -4,9 +4,12 @@ reference:
   fasta: resources/reference/hg38_test.fa
 
 datasets:
-  variants_only: config/test_datasets_variants_only.tsv
-  variants_regions: config/test_datasets_variants_regions.tsv
-  regions_only:  config/test_datasets_regions_only.tsv
+  variants_only: 
+   - config/test_datasets_variants_only.tsv
+  variants_regions: 
+   - config/test_datasets_variants_regions.tsv
+  regions_only: 
+   - config/test_datasets_regions_only.tsv
 
 oligo_length: 150
 
@@ -14,6 +17,8 @@ tiling:
   remove_edge_variants: true
   min_overlap: 50
   strategies:
+    centering:
+      max: 250
     two_tiles:
       max: 250 # 170 wil be used because of 2*150 -2 *50 -2*15
       include_variant_edge: true

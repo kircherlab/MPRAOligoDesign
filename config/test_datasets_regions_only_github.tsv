@@ -1,2 +1,2 @@
 sample	bed_file
-test_1	/github/workspace/resources/tests/input.bed
+test_1	resources/tests/input.bed.gz
