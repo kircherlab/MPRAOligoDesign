@@ -1,8 +1,14 @@
 # Snakemake workflow: MPRAOligoDesign
 
-[![Snakemake](https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg)](https://snakemake.bitbucket.io)
-![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/mpraoligodesign/badge/?version=latest)](https://mpraoligodesign.readthedocs.io/en/latest/?badge=latest)
+[![DOI](https://zenodo.org/badge/565841201.svg)](https://doi.org/10.5281/zenodo.18173304)
+[![GitHub License](https://img.shields.io/github/license/kircherlab/MPRAOligoDesign)](https://github.com/kircherlab/MPRAOligoDesign/blob/master/LICENSE)
+[![GitHub Release](https://img.shields.io/github/v/release/kircherlab/MPRAOligoDesign)](https://github.com/kircherlab/MPRAOligoDesign/releases/latest)
+[![Snakemake](https://img.shields.io/badge/snakemake-≥7.20.0-brightgreen.svg)](https://snakemake.bitbucket.io)
+[![Tests](https://github.com/kircherlab/MPRAOligoDesign/workflows/Tests/badge.svg)](https://github.com/kircherlab/MPRAOligoDesign/actions/workflows/main.yml)
+[![GitHub Issues](https://img.shields.io/github/issues/kircherlab/MPRAOligoDesign)](https://github.com/kircherlab/MPRAOligoDesign/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/kircherlab/MPRAOligoDesign)](https://github.com/kircherlab/MPRAOligoDesign/pulls)
+
 
 Workflow to generate an oligo design for MPRA experiments. It has multiple ways to generate sequences:
 

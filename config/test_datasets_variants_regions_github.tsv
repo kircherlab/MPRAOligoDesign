@@ -1,2 +1,2 @@
 sample	bed_file	vcf_file
-Variants_region_1	/github/resources/tests/input.bed	/github/resources/tests/input.vcf
+Variants_region_1	resources/tests/input.bed	resources/tests/input.vcf

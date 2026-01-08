@@ -60,7 +60,7 @@ The experiment workflow is configured in the :code:`oligo_length` section. Each 
 .. literalinclude:: ../workflow/schemas/config.schema.yaml
    :language: yaml
    :start-after: start_oligo_length
-   :end-before: end_experiments
+   :end-before: end_oligo_length
 
 :end_oligo_length:
     Length of the oligo (excluding adapters).

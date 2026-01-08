@@ -1,4 +1,4 @@
-$schema: "http://json-schema.org/draft-04/schema#"
+$schema: "https://json-schema.org/draft/2020-12/schema"
 
 description: snakemake configuration file
 
@@ -51,6 +51,6 @@ properties:
 
 # entries that have to be in the config file for successful validation
 required:
-  - reference 
+  - reference
   - datasets
   - oligo_length
