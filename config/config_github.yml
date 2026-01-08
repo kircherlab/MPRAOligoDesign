@@ -3,8 +3,8 @@ reference:
   genome: resources/reference/hg38.chrom.sizes
   fasta: resources/reference/hg38_test.fa
 datasets:
-  variants_regions:
-    - config/test_datasets_variants_regions_github.tsv
+  # variants_regions:
+  #   - config/test_datasets_variants_regions_github.tsv
   regions_only:
     - config/test_datasets_regions_only_github.tsv
 

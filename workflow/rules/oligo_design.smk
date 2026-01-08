@@ -224,7 +224,7 @@ rule oligo_design_regions_getSequences:
     conda:
         "../envs/default.yaml"
     input:
-        regions=lambda wc: datasets.loc[wc.sample, "bed_file"],
+        regions="results/tiling/{sample}/regions.tiles.bed.gz",
         ref=config["reference"]["fasta"],
     output:
         design="results/oligo_design/{sample}/design_regions.fa",
@@ -251,7 +251,7 @@ rule oligo_design_regions_getRegionMap:
     conda:
         "../envs/default.yaml"
     input:
-        regions=lambda wc: datasets.loc[wc.sample, "bed_file"],
+        regions="results/tiling/{sample}/regions.tiles.bed.gz",
         design="results/oligo_design/{sample}/design_regions.fa",
     output:
         design_map="results/oligo_design/{sample}/design_regions.region_map.tsv.gz",
@@ -275,7 +275,7 @@ rule oligo_design_regions_filterOligos:
     conda:
         "../envs/filter.yaml"
     input:
-        regions=lambda wc: datasets.loc[wc.sample, "bed_file"],
+        regions="results/tiling/{sample}/regions.tiles.bed.gz",
         design="results/oligo_design/{sample}/design_regions.adapters.fa",
         design_map="results/oligo_design/{sample}/design_regions.region_map.tsv.gz",
         simple_repeats=getReference("simpleRepeat.bed.gz"),
@@ -312,7 +312,7 @@ rule oligo_design_regions_filter_regions:
         "../envs/default.yaml"
     input:
         map="results/oligo_design/{sample}/design_regions_filtered.region_map.tsv.gz",
-        regions=lambda wc: datasets.loc[wc.sample, "bed_file"],
+        regions="results/tiling/{sample}/regions.tiles.bed.gz",
     output:
         regions="results/oligo_design/{sample}/design_regions_filtered.regions.bed.gz",
     log:
