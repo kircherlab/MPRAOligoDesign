@@ -6,7 +6,6 @@ channels:
   - nodefaults
 dependencies:
   - python
-  - htslib
-  - "pysam==0.21"
+  - pysam
   - pandas
   - click
