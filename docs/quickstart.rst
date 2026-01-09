@@ -36,4 +36,6 @@ We can combine 4 different designing routines. ``variants_only``, ``regions_only
 
 .. code-block:: bash
 
-    snakemake --use-conda --cores $N --configfile config/config_quickstart.yaml
+    snakemake --cores 1 --configfile config/config_quickstart.yml
+
+This should design oligogs for all 3 routines. The results will be stored in the ``results/final_design`` folder. 

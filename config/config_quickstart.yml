@@ -1,6 +1,6 @@
 ---
 reference:
-  genome: /data/cephfs-1/work/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa.sizes
+  genome: /data/cephfs-1/work/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa.genome
   fasta: /data/cephfs-1/work/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa
 
 datasets:

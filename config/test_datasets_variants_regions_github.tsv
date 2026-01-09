@@ -1,2 +1,2 @@
 sample	bed_file	vcf_file
-Variants_region_1	resources/tests/input.bed.gz	resources/tests/input.vcf.gz
+variants_region_1	resources/tests/input.bed.gz	resources/tests/input.vcf.gz
