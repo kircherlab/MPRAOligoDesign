@@ -4,14 +4,14 @@ reference:
   fasta: /data/cephfs-1/work/projects/cubit/current/reference/hg38/ucsc/hg38.fa
 
 datasets:
-  variants_only: 
+  variants_only:
     - design.control_variants.tsv
-  variants_regions: 
+  variants_regions:
     - design.samples_combined.tsv
     - design.control_variants_regions.tsv
-  regions_only:  
+  regions_only:
     - design.control_regions.tsv
-  sequences_only: 
+  sequences_only:
     - design.control_sequences.tsv
 
 
