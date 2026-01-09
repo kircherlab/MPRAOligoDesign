@@ -1,6 +1,7 @@
+---
 reference:
-  genome: /fast/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa.genome
-  fasta: /fast/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa
+  genome: /data/cephfs-1/work/projects/cubit/current/reference/hg38/ucsc/hg38.fa.genome
+  fasta: /data/cephfs-1/work/projects/cubit/current/reference/hg38/ucsc/hg38.fa
 
 datasets:
   variants_only: 

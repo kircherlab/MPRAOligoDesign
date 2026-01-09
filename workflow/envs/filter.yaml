@@ -1,9 +1,12 @@
+---
 name: filter
 channels:
   - conda-forge
   - bioconda
   - nodefaults
 dependencies:
-  - pysam
+  - python
+  - htslib
+  - "pysam==0.21"
   - pandas
   - click

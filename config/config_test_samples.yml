@@ -1,15 +1,15 @@
-wrapper_directory: /data/gpfs-1/users/schubacm_c/work/projects/snakemake_wrappers
+---
 reference:
-  genome: resources/reference/hg38.chrom.sizes
-  fasta: resources/reference/hg38_test.fa
+  genome: /data/cephfs-1/work/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa.genome
+  fasta: /data/cephfs-1/work/projects/cubit/current/static_data/reference/hg38/ucsc/hg38.fa
 
 datasets:
   variants_only: 
    - config/test_datasets_variants_only.tsv
-  variants_regions: 
-   - config/test_datasets_variants_regions.tsv
-  regions_only: 
-   - config/test_datasets_regions_only.tsv
+  # variants_regions: 
+  #  - config/test_datasets_variants_regions.tsv
+  # regions_only: 
+  #  - config/test_datasets_regions_only.tsv
 
 oligo_length: 150
 

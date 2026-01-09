@@ -1,6 +1,6 @@
 ---
 reference:
-  genome: resources/reference/hg38.chrom.sizes
+  genome: resources/reference/hg38_test.chrom.sizes
   fasta: resources/reference/hg38_test.fa
 datasets:
   # variants_regions:
