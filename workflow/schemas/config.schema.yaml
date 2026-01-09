@@ -112,7 +112,7 @@ properties:
           use_most_centered_region:
             type: boolean
             description: "If variants fits to multiple oligos use the one where it is most centered. Otherwise all are used."
-          remove_unused_regions:   
+          remove_unused_regions: 
             type: boolean
             description: "Whether to remove regions that are not used for any variant"
       filtering:
