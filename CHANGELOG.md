@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.1.2](https://github.com/kircherlab/MPRAOligoDesign/compare/v0.1.1...v0.1.2) (2026-01-09)
+
+
+### Bug Fixes
+
+* region file of Variants only was missing in the final design ([b7048e7](https://github.com/kircherlab/MPRAOligoDesign/commit/b7048e7c10da9b4cbe5dbbc9207ec82b9615a3b3))
+* variant only regions where missing in final region file ([3a8e904](https://github.com/kircherlab/MPRAOligoDesign/commit/3a8e9047328b77fe12faa2dc2f5efa9b8c969e83))
+* zip iterator bug in filtering restriction sites ([#18](https://github.com/kircherlab/MPRAOligoDesign/issues/18)) ([f606e00](https://github.com/kircherlab/MPRAOligoDesign/commit/f606e0095dee861b271dc470a0cc82cc82a26edd))
+
 ## [0.1.1](https://github.com/kircherlab/MPRAOligoDesign/compare/v0.1.0...v0.1.1) (2025-02-21)
 
 
