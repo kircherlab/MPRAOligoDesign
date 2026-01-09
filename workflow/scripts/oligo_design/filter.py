@@ -90,9 +90,9 @@ def seqs_filter(seqs, max_hom):
     sites.append("CCTGCA^GG")
     names["G^AATTC"] = "EcoRI"
     sites.append("G^AATTC")
-    restriction_sites = zip(map(lambda site: re.compile(Site2RegEx(
-        site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites))
-
+    restriction_sites = list(zip(map(lambda site: re.compile(Site2RegEx(
+        site), re.IGNORECASE), sites), map(lambda site: site.find("^"), sites)))
+    
     failed_list = []
     fail_reasons = {"restrictions": 0, "hompol": 0}
 
