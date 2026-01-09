@@ -102,10 +102,10 @@ def getRegionDatasets():
     """
     Returns a list of samples that contain regions.
     """
-    if "bed_file" in datasets.columns:
-        return datasets[datasets["bed_file"].notnull()].index.tolist()
+    if "fasta_file" in datasets.columns:
+        return datasets[datasets["fasta_file"].isnull()].index.tolist()
     else:
-        return []
+        return datasets.index.tolist()
 
 
 def getVariantDatasets():

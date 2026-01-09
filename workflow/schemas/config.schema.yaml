@@ -47,10 +47,103 @@ properties:
     type: integer
     description: "Length of oligos to be designed"
     minimum: 1
-# end_oligo_length
+  # start_tiling
+  tiling:
+    type: object
+    description: "Parameters for tiling strategy"
+    properties:
+      remove_edge_variants:
+        type: boolean
+        description: "Whether to remove variants that are too close to the edges of regions"
+      variant_edge_exclusion:
+        type: integer
+        description: "Number of bases to exclude variants on oligo edges"
+        minimum: 0
+        default: 0
+      min_overlap:
+        type: integer
+        description: "Minimum overlap between adjacent oligos"
+        minimum: 0
+      strategies:
+        type: object
+        description: "Tiling strategies to be used"
+        properties:
+          centering:
+            type: object
+            description: "Parameters for centering strategy"
+            properties:
+              max:
+                type: integer
+                description: "Maximum length of the region for design used for centering of the oligo. If region is longer two tiles are used."
+                minimum: 1
+            required:
+              - max
+          two_tiles:
+            type: object
+            description: "Parameters for two_tiles strategy"
+            properties:
+              max:
+                type: integer
+                description: "Maximum length of the region for design used for two_tiles strategy. If region is longer than than this value a multiple tiling is used using the min_overlap."
+                minimum: 1
+              include_variant_edge:
+                type: boolean
+                description: "Whether to include variant edge in tiling"
+            required:
+              - max
+              - include_variant_edge
+        required:
+          - centering
+          - two_tiles
+    required:
+      - remove_edge_variants
+      - min_overlap
+      - strategies
+      - variant_edge_exclusion
+  # start_oligo_design
+  oligo_design:
+    type: object
+    description: "Parameters for oligo design"
+    properties:
+      variants:
+        type: object
+        description: "Parameters for variant handling during oligo design"
+        properties:
+          use_most_centered_region:
+            type: boolean
+            description: "If variants fits to multiple oligos use the one where it is most centered. Otherwise all are used."
+          remove_unused_regions:
+            type: boolean
+            description: "Whether to remove regions that are not used for any variant"
+      filtering:
+        type: object
+        description: "Parameters for filtering designed oligos"
+        properties:
+          max_homopolymer_length:
+            type: integer
+            description: "Maximum allowed homopolymer length in designed oligos"
+            minimum: 1
+          max_simple_repeat_fraction:
+            type: number
+            description: "Maximum allowed fraction of simple repeats in designed oligos"
+            minimum: 0.0
+            maximum: 1.0
+      adapters:
+        type: object
+        description: "Adapter sequences to be added to designed oligos"
+        properties:
+          left:
+            type: string
+            description: "Left adapter sequence"
+          right:
+            type: string
+            description: "Right adapter sequence"
+  # end_oligo_design
 
 # entries that have to be in the config file for successful validation
 required:
   - reference
   - datasets
   - oligo_length
+  - tiling
+  - oligo_design

@@ -13,13 +13,13 @@ def fastaReader(filestream):
     name, value = None, None
     for line in filestream:
         if line.startswith(">"):
-            if value != None:
+            if value is not None:
                 yield name, value
             value = None
             name = line[1:].strip()
         else:
             value = line.strip()
-    if value != None:
+    if value is not None:
         yield name, value
 
 
@@ -80,6 +80,7 @@ def regions_filter(regions_file, repeatIndex, TSSIndex, CTCFIndex, max_repeats):
         if failed:
             failed_list.append(rid)
 
+    regions.close()
     return failed_list, fail_reasons
 
 
@@ -96,25 +97,21 @@ def seqs_filter(seqs, max_hom):
     failed_list = []
     fail_reasons = {"restrictions": 0, "hompol": 0}
 
-    if seqs[-3:] == ".gz":
-        seqfile = gzip.open(seqs, 'rt')
-    else:
-        seqfile = open(seqs)
-
-    fasta = fastaReader(seqfile)
-    for cid, seq in fasta:
-        if (max_hom == None) or (nucleotideruns(seq) <= max_hom):
-            foundRestrictionSite = False
-            for ind, (site, pos) in enumerate(restriction_sites):
-                if any(site.finditer(seq)):
-                    foundRestrictionSite = True
-                    break
-            if foundRestrictionSite:
-                fail_reasons["restrictions"] += 1
+    open_func = gzip.open if seqs.endswith(".gz") else open
+    with open_func(seqs, 'rt') as seqfile:
+        fasta = fastaReader(seqfile)
+        for cid, seq in fasta:
+            if (max_hom is None) or (nucleotideruns(seq) <= max_hom):
+                foundRestrictionSite = False
+                for ind, (site, pos) in enumerate(restriction_sites):
+                    if any(site.finditer(seq)):
+                        foundRestrictionSite = True
+                        break
+                if foundRestrictionSite:
+                    fail_reasons["restrictions"] += 1
+                    failed_list.append(cid)
+            else:
+                fail_reasons["hompol"] += 1
                 failed_list.append(cid)
-        else:
-            fail_reasons["hompol"] += 1
-            failed_list.append(cid)
 
-    seqfile.close()
     return failed_list, fail_reasons

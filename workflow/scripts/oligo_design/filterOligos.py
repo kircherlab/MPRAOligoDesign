@@ -39,6 +39,7 @@ from filter import seqs_filter, regions_filter
     "--remove-regions-without-variants/--keep-regions-without-variants",
     "remove_regions_without_variants",
     required=False,
+    default=False,
     help="Remove regions without variants",
 )
 @click.option(
@@ -104,9 +105,9 @@ def cli(
     variant_map_out,
     map_out,
 ):
-    repeatIndex = pysam.Tabixfile(simple_repeats_file)
-    TSSIndex = pysam.Tabixfile(tss_pos_file)
-    CTCFIndex = pysam.Tabixfile(ctcf_motif_file)
+    repeatIndex = pysam.TabixFile(simple_repeats_file)
+    TSSIndex = pysam.TabixFile(tss_pos_file)
+    CTCFIndex = pysam.TabixFile(ctcf_motif_file)
 
     fail_reasons = {}
     failed = {}
@@ -162,20 +163,20 @@ def write_output(
         variant_map = pd.read_csv(variant_map_file, sep="\t")
     else:
         variant_map = pd.DataFrame(columns=["Variant", "Region", "REF_ID", "ALT_ID"])
-    map = pd.read_csv(map_file, sep="\t")
+    seq_map = pd.read_csv(map_file, sep="\t")
 
     total = len(
-        pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], map["ID"]]).unique()
+        pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], seq_map["ID"]]).unique()
     )
 
     if "regions" in failed:
-        map = map.drop(map[map["Region"].isin(failed["regions"])].index)
+        seq_map = seq_map.drop(seq_map[seq_map["Region"].isin(failed["regions"])].index)
         variant_map = variant_map.drop(
             variant_map[variant_map["Region"].isin(failed["regions"])].index
         )
 
     if "seqs" in failed:
-        map = map.drop(map[map["ID"].isin(failed["seqs"])].index).copy()
+        seq_map = seq_map.drop(seq_map[seq_map["ID"].isin(failed["seqs"])].index).copy()
 
         variant_map = variant_map.drop(
             variant_map[variant_map["REF_ID"].isin(failed["seqs"])].index
@@ -186,12 +187,12 @@ def write_output(
         # remove alt ids if the associated ref id fails:
         ref_alt_dict = variant_map.groupby('REF_ID')['ALT_ID'].apply(list).to_dict()
         failed_ref_alt_seqs = flatten_list([ref_alt_dict[name] for name in failed["seqs"] if name in ref_alt_dict.keys()])
-        map = map.drop(map[map["ID"].isin(failed_ref_alt_seqs)].index).copy()
+        seq_map = seq_map.drop(seq_map[seq_map["ID"].isin(failed_ref_alt_seqs)].index).copy()
 
         if remove_regions_without_variants:
-            map = map.drop(
-                map[
-                    ~map["ID"].isin(
+            seq_map = seq_map.drop(
+                seq_map[
+                    ~seq_map["ID"].isin(
                         pd.concat(
                             [variant_map["REF_ID"], variant_map["ALT_ID"]]
                         ).unique()
@@ -204,10 +205,10 @@ def write_output(
             variant_map_out_file, compression="gzip", sep="\t", index=False
         )
 
-    map.to_csv(map_out_file, compression="gzip", sep="\t", index=False)
+    seq_map.to_csv(map_out_file, compression="gzip", sep="\t", index=False)
 
     removed = total - len(
-        pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], map["ID"]]).unique()
+        pd.concat([variant_map["REF_ID"], variant_map["ALT_ID"], seq_map["ID"]]).unique()
     )
 
     return (total, removed)
