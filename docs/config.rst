@@ -4,9 +4,9 @@
 Config File
 =====================
 
-The config file is a yaml file that contains the configuration.You can use one config file per MPRA design. It is divided into :code:`reference` (reference sequence), :code:`datasets` (different input files to design), :code:`tiling` (tiling strategies of predifined regions with variants), and :code:`oligo_design` (filtering and adapters). This is a full example file with all possible configurations. :download:`config/example_config.yaml <../config/example_config.yaml>`.
+The config file is a yaml file that contains the configuration.You can use one config file per MPRA design. It is divided into :code:`reference` (reference sequence), :code:`datasets` (different input files to design), :code:`tiling` (tiling strategies of predifined regions with variants), and :code:`oligo_design` (filtering and adapters). This is a full example file with all possible configurations. :download:`config/example_config.yml <../config/example_config.yml>`.
 
-.. literalinclude:: ../config/example_config.yaml
+.. literalinclude:: ../config/example_config.yml
    :language: yaml
    :linenos:
 
