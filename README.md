@@ -30,6 +30,12 @@ When sequences are generated it filters them with multiple check:
 
 * Max Schubach (@visze), Berlin Institute of Health (BIH), [Computational Genome Biology](https://kircherlab.bihealth.org)
 
+## Citation
+
+If you use MPRAOligoDesign in your work, please cite:
+
+> Rosen JD, Vasanthakumari AD, Salomon K, de Lange N, Dash PM, Keukeleire P, Hassan A, Barrera A, Krupkin B, Oualline G, Kircher M, Love MI, Schubach M. Uniform processing and analysis of IGVF massively parallel reporter assay data with MPRAsnakeflow. *Genome Research* (2025). doi: [10.1101/gr.281462.125](https://doi.org/10.1101/gr.281462.125)
+
 ## Overview
 
 ![MPRA Oligo Design overview](docs/MPRAOligoDesign.png)
